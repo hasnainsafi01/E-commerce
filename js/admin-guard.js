@@ -48,14 +48,15 @@ onAuthStateChanged(auth, async (user) => {
             document.dispatchEvent(new CustomEvent('admin-verified', { 
                 detail: { user: { uid: user.uid, ...userDoc.data() } } 
             }));
+
+            // Reveal UI immediately (behind loader) to prevent flicker when loader fades out
+            document.body.classList.remove('admin-loading');
+
             if (loader) {
                 loader.classList.add('hidden');
                 setTimeout(() => {
                     loader.style.display = 'none';
-                    document.body.classList.remove('admin-loading');
                 }, 400); 
-            } else {
-                document.body.classList.remove('admin-loading');
             }
         } else {
             // Failure: Not an admin
