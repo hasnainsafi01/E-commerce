@@ -23,36 +23,50 @@ const db = getFirestore(app);
 onAuthStateChanged(auth, async (user) => {
     const loader = document.getElementById('admin-loader');
     
+    // 1. Check if user is authenticated
     if (!user) {
-        console.warn("No authenticated user found. Redirecting to home...");
+        console.warn("Unauthorized access: No session found. Redirecting...");
+        sessionStorage.removeItem('admin_verified');
         window.location.replace('../index.html');
         return;
     }
 
     try {
-        // Fetch user document to check role
+        // 2. Optimized Role Check: Use session cache only for UI speed, but ALWAYS verify with Firestore
+        const isVerified = sessionStorage.getItem('admin_verified') === user.uid;
+        
+        // Fetch user document from Firestore
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists() && userDoc.data().role === 'admin') {
-            console.log("Admin access granted.");
+            // Success: Mark session as verified and reveal UI
+            sessionStorage.setItem('admin_verified', user.uid);
+            console.log("Admin privileges verified.");
             
-            // Success: Remove loading state and reveal content
+            // Dispatch event for other scripts (like admin.js) to start
+            document.dispatchEvent(new CustomEvent('admin-verified', { 
+                detail: { user: { uid: user.uid, ...userDoc.data() } } 
+            }));
             if (loader) {
                 loader.classList.add('hidden');
                 setTimeout(() => {
                     loader.style.display = 'none';
                     document.body.classList.remove('admin-loading');
-                }, 400); // Match CSS transition
+                }, 400); 
             } else {
                 document.body.classList.remove('admin-loading');
             }
         } else {
-            console.error("Access denied: User does not have admin privileges.");
+            // Failure: Not an admin
+            console.error("Access Denied: Account lacks administrative privileges.");
+            sessionStorage.removeItem('admin_verified');
             window.location.replace('../index.html');
         }
     } catch (error) {
-        console.error("Security verification failed:", error);
+        // Critical Error: Security breach or network failure
+        console.error("Security System Error:", error);
+        sessionStorage.removeItem('admin_verified');
         window.location.replace('../index.html');
     }
 });

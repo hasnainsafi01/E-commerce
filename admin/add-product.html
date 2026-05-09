@@ -11,6 +11,13 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
+    <!-- Critical Security Styles: Prevents UI flicker before JS auth check -->
+    <style>
+        body.admin-loading .admin-sidebar,
+        body.admin-loading .admin-main {
+            display: none !important;
+        }
+    </style>
 </head>
 <body class="admin-body admin-loading">
 

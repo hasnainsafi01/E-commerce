@@ -27,15 +27,12 @@ const db = getFirestore(app);
 let currentAdmin = null;
 
 // Initialize
-onAuthStateChanged(auth, async (user) => {
-    if (user) {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (userDoc.exists() && userDoc.data().role === 'admin') {
-            currentAdmin = { uid: user.uid, ...userDoc.data() };
-            document.getElementById('admin-name').innerText = currentAdmin.fullName || 'Admin';
-            initDashboard();
-        }
-    }
+// Initialize only after guard has verified the admin
+document.addEventListener('admin-verified', (e) => {
+    currentAdmin = e.detail.user;
+    const adminNameEl = document.getElementById('admin-name');
+    if (adminNameEl) adminNameEl.innerText = currentAdmin.fullName || 'Admin';
+    initDashboard();
 });
 
 function initDashboard() {
