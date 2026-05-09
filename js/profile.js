@@ -77,7 +77,9 @@ function updateUIWithUserData(user, firestoreData = null) {
     const lastName = firestoreData?.lastName || '';
     const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (user.displayName || 'ShopHub User');
     const email = user.email;
-    const profilePic = firestoreData?.profileImage || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
+    
+    // Priority Logic: 1. Firestore photoURL (Uploaded/Synced) > 2. Firebase Auth photoURL > 3. UI-Avatar
+    const profilePic = firestoreData?.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
 
     // UI Elements
     const nameEl = document.getElementById('user-fullname');
@@ -195,7 +197,7 @@ function setupAvatarUpload() {
                 // Update Firestore User Document
                 const userRef = doc(db, "users", auth.currentUser.uid);
                 await updateDoc(userRef, { 
-                    profileImage: newUrl,
+                    photoURL: newUrl,
                     updatedAt: new Date()
                 });
 

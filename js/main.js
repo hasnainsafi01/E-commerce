@@ -422,7 +422,7 @@ async function handleAuthSubmit(e) {
             await updateProfile(user, { displayName: fullName });
             await setDoc(doc(db, "users", user.uid), {
                 firstName, lastName, fullName, email,
-                profileImage: null, role: 'user', createdAt: new Date(), lastLogin: new Date()
+                photoURL: null, role: 'user', createdAt: new Date(), lastLogin: new Date()
             });
         } else {
             await signInWithEmailAndPassword(auth, email, password);
@@ -456,7 +456,7 @@ async function handleGoogleLogin() {
             lastName,
             fullName: user.displayName || 'ShopHub User',
             email: user.email,
-            profileImage: user.photoURL,
+            photoURL: user.photoURL,
             role: 'user',
             lastLogin: new Date(),
             updatedAt: new Date()
