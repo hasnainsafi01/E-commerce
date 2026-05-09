@@ -224,8 +224,6 @@ function setupSettingsForm() {
     const saveBtn = document.getElementById('save-settings-btn');
 
     form.addEventListener('submit', async (e) => {
-
-    form.addEventListener('submit', async (e) => {
         e.preventDefault();
         
         const firstName = document.getElementById('first-name-input').value.trim();
