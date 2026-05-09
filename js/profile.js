@@ -72,12 +72,17 @@ function monitorAuthState() {
  * UI Updates
  */
 function updateUIWithUserData(user, firestoreData = null) {
-    const fullName = firestoreData?.fullName || user.displayName || 'ShopHub User';
-    const firstName = firestoreData?.firstName || (user.displayName ? user.displayName.split(' ')[0] : '');
-    const lastName = firestoreData?.lastName || (user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '');
+    const firstName = firestoreData?.firstName || '';
+    const lastName = firestoreData?.lastName || '';
+    const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (user.displayName || 'ShopHub User');
     const email = user.email;
     const profilePic = firestoreData?.profileImage || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
 
+    // UI Elements
+    const nameEl = document.getElementById('user-fullname');
+    const emailEl = document.getElementById('user-email');
+    const avatarEl = document.getElementById('user-avatar');
+    
     // Settings inputs
     const inputFirstNameEl = document.getElementById('first-name-input');
     const inputLastNameEl = document.getElementById('last-name-input');
@@ -240,18 +245,19 @@ function setupSettingsForm() {
         try {
             // 1. Update Profile (Firestore + Auth)
             const userRef = doc(db, "users", auth.currentUser.uid);
-            await updateDoc(userRef, {
+            await setDoc(userRef, {
                 firstName,
                 lastName,
                 updatedAt: new Date()
-            });
+            }, { merge: true });
 
             if (fullName !== auth.currentUser.displayName) {
                 await updateProfile(auth.currentUser, { displayName: fullName });
-                // Update sidebar UI instantly
-                const nameEl = document.getElementById('user-fullname');
-                if (nameEl) nameEl.innerText = fullName;
             }
+
+            // Update UI instantly across the page
+            const nameEl = document.getElementById('user-fullname');
+            if (nameEl) nameEl.innerText = fullName;
 
             // 2. Handle Password Change if requested
             if (newPassword) {
