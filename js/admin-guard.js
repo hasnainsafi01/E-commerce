@@ -20,16 +20,31 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+let authTimeout;
+
 onAuthStateChanged(auth, async (user) => {
     const loader = document.getElementById('admin-loader');
     
     // 1. Check if user is authenticated
     if (!user) {
-        console.warn("Unauthorized access: No session found. Redirecting...");
-        sessionStorage.removeItem('admin_verified');
-        window.location.replace('../index.html');
+        // Prevent false logouts during password update token refresh
+        console.warn("Auth state null detected. Waiting for stabilization...");
+        if (loader) {
+            loader.style.display = 'flex';
+            loader.classList.remove('hidden');
+        }
+        document.body.classList.add('admin-loading');
+
+        authTimeout = setTimeout(() => {
+            console.error("Unauthorized access: No session found. Redirecting...");
+            sessionStorage.removeItem('admin_verified');
+            window.location.replace('../index.html');
+        }, 1500); // 1.5s stabilization window
         return;
     }
+
+    // Cancel any pending redirect if session is recovered
+    if (authTimeout) clearTimeout(authTimeout);
 
     try {
         // 2. Optimized Role Check: Use session cache only for UI speed, but ALWAYS verify with Firestore
