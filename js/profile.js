@@ -134,6 +134,16 @@ function setupAvatarUpload() {
     if (editBtn) {
         editBtn.addEventListener('click', (e) => {
             e.preventDefault();
+            e.stopPropagation();
+            fileInput.click();
+        });
+    }
+
+    // Make the avatar container itself clickable
+    const container = document.querySelector('.profile-avatar-container');
+    if (container) {
+        container.style.cursor = 'pointer';
+        container.addEventListener('click', () => {
             fileInput.click();
         });
     }
@@ -142,7 +152,19 @@ function setupAvatarUpload() {
         const file = e.target.files[0];
         if (!file) return;
 
-        avatarImg.style.opacity = '0.5';
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert('Please select a valid image (JPG, PNG, or WEBP)');
+            return;
+        }
+
+        // Show loading state
+        const loadingOverlay = document.createElement('div');
+        loadingOverlay.className = 'avatar-loading-overlay';
+        loadingOverlay.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        container.appendChild(loadingOverlay);
+        avatarImg.style.filter = 'blur(2px)';
 
         const formData = new FormData();
         formData.append('file', file);
@@ -150,18 +172,35 @@ function setupAvatarUpload() {
 
         try {
             const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+            if (!response.ok) throw new Error('Cloudinary upload failed');
+            
             const data = await response.json();
             
             if (data.secure_url) {
                 const newUrl = data.secure_url;
+                
+                // Update Firebase Auth Profile
                 await updateProfile(auth.currentUser, { photoURL: newUrl });
-                await updateDoc(doc(db, "users", auth.currentUser.uid), { profileImage: newUrl });
+                
+                // Update Firestore User Document
+                const userRef = doc(db, "users", auth.currentUser.uid);
+                await updateDoc(userRef, { 
+                    profileImage: newUrl,
+                    updatedAt: new Date()
+                });
+
+                // Update UI instantly
                 avatarImg.src = newUrl;
+                
+                // Success feedback (optional toast could be added here)
+                console.log('Profile image updated successfully');
             }
         } catch (error) {
+            console.error('Upload error:', error);
             alert('Upload failed: ' + error.message);
         } finally {
-            avatarImg.style.opacity = '1';
+            if (loadingOverlay) loadingOverlay.remove();
+            avatarImg.style.filter = 'none';
         }
     });
 }
@@ -281,11 +320,8 @@ async function fetchUserWishlist(uid) {
     });
 }
 
-window.handleLogout = async () => {
-    if (confirm('Are you sure you want to log out?')) {
-        await signOut(auth);
-        window.location.href = 'index.html';
-    }
+window.handleLogout = () => {
+    window.showLogoutModal();
 };
 
 window.trackOrder = async (id) => {

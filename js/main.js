@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavbarScroll();
     setupNewsletter();
     injectAuthModal();
+    injectLogoutModal();
     
     // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
@@ -155,7 +156,10 @@ async function updateNavbarUI(user) {
             ${isAdmin ? '<a href="admin/index.html" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary);"><i class="fas fa-user-shield"></i> Admin</a>' : ''}
             <button class="btn btn-outline" id="logout-btn">Logout</button>
         `;
-        document.getElementById('logout-btn').addEventListener('click', handleLogout);
+        document.getElementById('logout-btn').addEventListener('click', (e) => {
+            e.preventDefault();
+            window.showLogoutModal();
+        });
     } else {
         authButtons.innerHTML = `
             <button class="btn btn-outline" id="login-trigger">Login</button>
@@ -235,6 +239,55 @@ function injectAuthModal() {
     document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
     document.getElementById('google-login').addEventListener('click', handleGoogleLogin);
     document.getElementById('switch-auth-mode').addEventListener('click', toggleAuthMode);
+}
+
+/**
+ * Logout Modal Logic
+ */
+function injectLogoutModal() {
+    if (document.getElementById('logoutModal')) return;
+    const modalHTML = `
+        <div class="modal-overlay" id="logoutModal">
+            <div class="modal-content logout-modal">
+                <div class="logout-icon">
+                    <i class="fas fa-sign-out-alt"></i>
+                </div>
+                <div class="auth-header">
+                    <h2>Logout Confirmation</h2>
+                    <p>Are you sure you want to log out of your ShopHub account?</p>
+                </div>
+                <div class="logout-actions">
+                    <button class="btn btn-outline" id="cancel-logout">Cancel</button>
+                    <button class="btn btn-primary" id="confirm-logout">Confirm Logout</button>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    document.getElementById('cancel-logout').addEventListener('click', hideLogoutModal);
+    document.getElementById('confirm-logout').addEventListener('click', async () => {
+        const confirmBtn = document.getElementById('confirm-logout');
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        confirmBtn.disabled = true;
+        await handleLogout();
+    });
+}
+
+window.showLogoutModal = () => {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function hideLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
 }
 
 let isSignUpMode = false;
