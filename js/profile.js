@@ -201,12 +201,12 @@ function setupAvatarUpload() {
                 // Update UI instantly
                 avatarImg.src = newUrl;
                 
-                // Success feedback (optional toast could be added here)
                 console.log('Profile image updated successfully');
+                window.showToast('Profile image updated successfully!');
             }
         } catch (error) {
             console.error('Upload error:', error);
-            alert('Upload failed: ' + error.message);
+            window.showToast('Upload failed: ' + error.message, 'error');
         } finally {
             if (loadingOverlay) loadingOverlay.remove();
             avatarImg.style.filter = 'none';
@@ -221,19 +221,9 @@ function setupSettingsForm() {
     const form = document.getElementById('settings-form');
     if (!form) return;
 
-    const messageEl = document.getElementById('settings-message');
     const saveBtn = document.getElementById('save-settings-btn');
 
-    const showMessage = (text, type = 'success') => {
-        messageEl.innerText = text;
-        messageEl.className = `settings-message ${type}`;
-        messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        if (type === 'success') {
-            setTimeout(() => {
-                messageEl.style.display = 'none';
-            }, 5000);
-        }
-    };
+    form.addEventListener('submit', async (e) => {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -247,7 +237,7 @@ function setupSettingsForm() {
         const confirmPassword = document.getElementById('confirm-password').value;
 
         if (!firstName || !lastName || !fullName) {
-            showMessage('Please fill in all required profile fields.', 'error');
+            window.showToast('Please fill in all required profile fields.', 'error');
             return;
         }
 
@@ -294,14 +284,14 @@ function setupSettingsForm() {
                 document.getElementById('confirm-password').value = '';
             }
 
-            showMessage('Profile updated successfully!');
+            window.showToast('Profile updated successfully!');
             
         } catch (error) {
             console.error('Settings update error:', error);
             let msg = error.message;
             if (error.code === 'auth/wrong-password') msg = 'Current password is incorrect.';
             if (error.code === 'auth/requires-recent-login') msg = 'Please re-login to update your password.';
-            showMessage(msg, 'error');
+            window.showToast(msg, 'error');
         } finally {
             saveBtn.innerHTML = originalBtnText;
             saveBtn.disabled = false;

@@ -43,6 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNewsletter();
     injectAuthModal();
     injectLogoutModal();
+    injectToastContainer();
     
     // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
@@ -293,6 +294,63 @@ function hideLogoutModal() {
         modal.style.display = 'none';
         document.body.style.overflow = 'auto';
     }
+}
+
+/**
+ * Global Toast System
+ */
+function injectToastContainer() {
+    if (document.getElementById('toast-container')) return;
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+}
+
+window.showToast = (message, type = 'success', duration = 5000) => {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas ${icons[type] || icons.info}"></i>
+        </div>
+        <div class="toast-content">
+            <p>${message}</p>
+        </div>
+        <button class="toast-close" aria-label="Close notification">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    // Auto hide
+    const timer = setTimeout(() => {
+        dismissToast(toast);
+    }, duration);
+
+    // Manual close
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        clearTimeout(timer);
+        dismissToast(toast);
+    });
+}
+
+function dismissToast(toast) {
+    toast.classList.add('hide');
+    toast.addEventListener('animationend', () => {
+        toast.remove();
+    });
 }
 
 let isSignUpMode = false;
