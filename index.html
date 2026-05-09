@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopHub | Premium E-commerce Experience</title>
+    <meta name="description" content="Discover premium tech, fashion, and lifestyle products at ShopHub. The ultimate shopping destination.">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Sticky Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-bolt"></i> Shop<span>Hub</span>
+            </a>
+
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Search for products, brands and more...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+
+            <div class="nav-actions">
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" onclick="loginUser()">Login</button>
+                    <button class="btn btn-primary" onclick="signupUser()">Sign Up</button>
+                </div>
+                
+                <a href="profile.html" class="nav-item">
+                    <i class="far fa-user"></i>
+                    <span>Profile</span>
+                </a>
+
+                <div class="nav-item" onclick="openCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Cart</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Category Menu -->
+    <div class="category-menu">
+        <div class="container">
+            <ul>
+                <li><a href="shoes.html" class="category-link">Shoes</a></li>
+                <li><a href="bags.html" class="category-link">Bags</a></li>
+                <li><a href="watches.html" class="category-link">Watches</a></li>
+                <li><a href="glasses.html" class="category-link">Glasses</a></li>
+                <li><a href="men.html" class="category-link">Men</a></li>
+                <li><a href="women.html" class="category-link">Women</a></li>
+                <li><a href="electronics.html" class="category-link">Electronics</a></li>
+                <li><a href="essentials.html" class="category-link">Essentials</a></li>
+                <li><a href="index.html" class="category-link">Home</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Hero Banner -->
+    <section class="hero">
+        <img src="assets/hero.png" alt="Premium Lifestyle" class="hero-image">
+        <div class="hero-content">
+            <h1>Upgrade Your Lifestyle with Tech Essentials</h1>
+            <p>Exclusive deals on premium electronics and smart home devices. Limited time offer.</p>
+            <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;">Shop Now</button>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="container">
+        
+        <!-- Featured Categories -->
+        <section class="section">
+            <h2 style="margin-bottom: var(--spacing-md);">Shop by Category</h2>
+            <div class="product-grid" id="featured-categories">
+                <!-- Dynamically filled with skeletons -->
+            </div>
+        </section>
+
+        <!-- New Arrivals -->
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h2>New Arrivals</h2>
+                <a href="#" style="color: var(--primary); font-weight: 600;">View All</a>
+            </div>
+            <div class="product-grid" id="new-arrivals">
+                <!-- Dynamically filled with skeletons -->
+            </div>
+        </section>
+
+        <!-- Trending Products -->
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h2>Trending Now</h2>
+                <a href="#" style="color: var(--primary); font-weight: 600;">View All</a>
+            </div>
+            <div class="product-grid" id="trending-grid" data-count="4">
+                <!-- Dynamically filled with skeletons -->
+            </div>
+        </section>
+
+        <!-- Men Collection -->
+        <section class="section">
+            <h2 style="margin-bottom: var(--spacing-md);">Men Collection</h2>
+            <div class="product-grid" id="men-grid" data-count="4">
+                <!-- Dynamically filled with skeletons -->
+            </div>
+        </section>
+
+        <!-- Women Collection -->
+        <section class="section">
+            <h2 style="margin-bottom: var(--spacing-md);">Women Collection</h2>
+            <div class="product-grid" id="women-grid" data-count="4">
+                <!-- Dynamically filled with skeletons -->
+            </div>
+        </section>
+
+        <!-- Newsletter Section -->
+        <section class="newsletter">
+            <div class="container">
+                <div class="newsletter-content">
+                    <h2>Join the ShopHub Community</h2>
+                    <p>Subscribe to our newsletter and receive exclusive early access to new arrivals, sales, and a 10% discount on your first order.</p>
+                    <form class="newsletter-form">
+                        <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
+                        <button type="submit" class="btn btn-white">Subscribe</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="#" class="logo" style="color: white; margin-bottom: 1.5rem;">
+                        <i class="fas fa-bolt"></i> Shop<span>Hub</span>
+                    </a>
+                    <p style="opacity: 0.7;">Your ultimate destination for quality products and seamless shopping experiences.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="#">Company</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="#">Electronics</a></li>
+                        <li><a href="#">Fashion</a></li>
+                        <li><a href="#">Home</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopHub Inc. All rights reserved. | <a href="#">Terms</a> | <a href="#">Privacy</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js" type="module"></script>
+</body>
+</html>

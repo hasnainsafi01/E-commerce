@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Logs | ShopHub Admin</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar">
+        <a href="index.html" class="sidebar-brand">
+            <i class="fas fa-bolt"></i> <span>ShopHub Admin</span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+            <a href="add-product.html" class="nav-link"><i class="fas fa-plus-circle"></i> <span>Add Product</span></a>
+            <a href="products.html" class="nav-link"><i class="fas fa-box"></i> <span>Manage Products</span></a>
+            <a href="orders.html" class="nav-link"><i class="fas fa-shopping-bag"></i> <span>Orders</span></a>
+            <a href="history.html" class="nav-link active"><i class="fas fa-history"></i> <span>History</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="../index.html" class="nav-link"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <header class="admin-header">
+            <div>
+                <h1>Activity Logs</h1>
+                <p style="color: var(--admin-text-muted);">Track all administrative actions performed on the platform.</p>
+            </div>
+            <button class="btn btn-outline" id="clear-logs">Clear Recent Logs</button>
+        </header>
+
+        <div class="admin-card">
+            <div class="card-header">
+                <h3>Admin History</h3>
+            </div>
+            <table class="admin-table" id="history-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Admin</th>
+                        <th>Action</th>
+                        <th>Entity</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic -->
+                </tbody>
+            </table>
+            <div id="history-empty" class="empty-state" style="padding: 4rem; display: none;">
+                <i class="fas fa-history"></i>
+                <h3>No activity logs found</h3>
+            </div>
+        </div>
+    </main>
+
+    <!-- Scripts -->
+    <script src="../js/admin-guard.js" type="module"></script>
+    <script src="../js/admin.js" type="module"></script>
+</body>
+</html>

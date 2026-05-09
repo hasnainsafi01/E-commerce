@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Shopping Cart | ShopHub</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Sticky Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-bolt"></i> Shop<span>Hub</span>
+            </a>
+
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Search for products, brands and more...">
+                <i class="fas fa-search search-icon"></i>
+            </div>
+
+            <div class="nav-actions">
+                <div class="auth-buttons">
+                    <button class="btn btn-outline" onclick="loginUser()">Login</button>
+                    <button class="btn btn-primary" onclick="signupUser()">Sign Up</button>
+                </div>
+                
+                <a href="profile.html" class="nav-item">
+                    <i class="far fa-user"></i>
+                    <span>Profile</span>
+                </a>
+
+                <div class="nav-item" onclick="openCart()">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Cart</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container section">
+        <h1 style="margin-bottom: var(--spacing-lg);">Your Shopping Cart</h1>
+
+        <div class="cart-container">
+            <!-- Left: Cart Items -->
+            <div id="cart-items-list" class="cart-items-list">
+                <!-- Items injected via main.js -->
+                <div class="skeleton-cart-item" style="height: 120px; background: #eee; border-radius: 8px;"></div>
+            </div>
+
+            <!-- Right: Order Summary -->
+            <div class="order-summary">
+                <h2>Order Summary</h2>
+                <div class="summary-row">
+                    <span>Subtotal <span id="summary-count">(0 items)</span></span>
+                    <span id="summary-subtotal">$0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>Shipping</span>
+                    <span style="color: #2ecc71; font-weight: 600;">Free</span>
+                </div>
+                
+                <div class="summary-total">
+                    <span>Total</span>
+                    <span id="summary-total">$0.00</span>
+                </div>
+
+                <button class="btn btn-primary checkout-btn" onclick="handleCheckout()">
+                    Checkout Now <i class="fas fa-arrow-right"></i>
+                </button>
+                
+                <button class="btn btn-outline" style="width: 100%; margin-top: 1rem;" onclick="clearCart()">
+                    Clear Cart
+                </button>
+
+                <div style="margin-top: 1.5rem; text-align: center; font-size: 0.85rem; color: var(--text-muted);">
+                    <i class="fas fa-shield-alt" style="color: #2ecc71; margin-right: 0.5rem;"></i>
+                    Secure Checkout Guaranteed
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <a href="index.html" class="logo" style="color: white; margin-bottom: 1.5rem;">
+                        <i class="fas fa-bolt"></i> Shop<span>Hub</span>
+                    </a>
+                    <p style="opacity: 0.7;">Your ultimate destination for quality products and seamless shopping experiences.</p>
+                </div>
+                <div class="footer-col">
+                    <h4>About</h4>
+                    <ul>
+                        <li><a href="#">Company</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Support</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Categories</h4>
+                    <ul>
+                        <li><a href="shoes.html">Shoes</a></li>
+                        <li><a href="bags.html">Bags</a></li>
+                        <li><a href="watches.html">Watches</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Help</h4>
+                    <ul>
+                        <li><a href="#">Contact</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Terms</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 ShopHub Inc. All rights reserved. | <a href="#">Terms</a> | <a href="#">Privacy</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="js/main.js" type="module"></script>
+</body>
+</html>

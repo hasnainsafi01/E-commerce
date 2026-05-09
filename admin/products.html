@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products | ShopHub Admin</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/admin.css">
+</head>
+<body class="admin-body">
+
+    <!-- Admin Sidebar -->
+    <aside class="admin-sidebar">
+        <a href="index.html" class="sidebar-brand">
+            <i class="fas fa-bolt"></i> <span>ShopHub Admin</span>
+        </a>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-link"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
+            <a href="add-product.html" class="nav-link"><i class="fas fa-plus-circle"></i> <span>Add Product</span></a>
+            <a href="products.html" class="nav-link active"><i class="fas fa-box"></i> <span>Manage Products</span></a>
+            <a href="orders.html" class="nav-link"><i class="fas fa-shopping-bag"></i> <span>Orders</span></a>
+            <a href="history.html" class="nav-link"><i class="fas fa-history"></i> <span>History</span></a>
+        </nav>
+        <div class="sidebar-footer">
+            <a href="../index.html" class="nav-link"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+        <header class="admin-header">
+            <div>
+                <h1>Manage Products</h1>
+                <p style="color: var(--admin-text-muted);">View, edit, and manage your product inventory.</p>
+            </div>
+            <a href="add-product.html" class="btn btn-primary"><i class="fas fa-plus"></i> Add New Product</a>
+        </header>
+
+        <!-- Filters Bar -->
+        <div class="admin-card" style="margin-bottom: 2rem; padding: 1rem 1.5rem; display: flex; gap: 1rem; align-items: center;">
+            <div style="flex: 1; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--admin-text-muted);"></i>
+                <input type="text" id="product-search" placeholder="Search by name or category..." style="padding-left: 2.5rem; border: 1px solid var(--admin-border); border-radius: var(--radius-md); width: 100%; height: 42px;">
+            </div>
+            <select id="category-filter" style="width: 200px; height: 42px; border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: 0 1rem;">
+                <option value="all">All Categories</option>
+                <option value="shoes">Shoes</option>
+                <option value="bags">Bags</option>
+                <option value="watches">Watches</option>
+                <option value="glasses">Glasses</option>
+                <option value="men">Men's Fashion</option>
+                <option value="women">Women's Fashion</option>
+                <option value="electronics">Electronics</option>
+                <option value="home">Home & Lifestyle</option>
+            </select>
+        </div>
+
+        <div class="admin-card">
+            <table class="admin-table" id="products-table">
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product Name</th>
+                        <th>Category</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Dynamic -->
+                </tbody>
+            </table>
+            <div id="products-empty" class="empty-state" style="padding: 4rem; display: none;">
+                <i class="fas fa-box-open"></i>
+                <h3>No products found</h3>
+                <p>Try adjusting your search or filters.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Product Modal -->
+    <div class="modal-overlay" id="editProductModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="card-header">
+                <h3>Edit Product</h3>
+                <i class="fas fa-times modal-close" id="close-edit-modal"></i>
+            </div>
+            <div style="padding: 1.5rem;">
+                <form id="edit-product-form" class="admin-form">
+                    <input type="hidden" id="edit-id">
+                    <div class="form-group full-width">
+                        <label for="edit-name">Product Name</label>
+                        <input type="text" id="edit-name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-price">Price ($)</label>
+                        <input type="number" id="edit-price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-stock">Stock</label>
+                        <input type="number" id="edit-stock" required>
+                    </div>
+                    <div class="form-group full-width">
+                        <button type="submit" class="btn btn-primary w-100">Update Product</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="../js/admin-guard.js" type="module"></script>
+    <script src="../js/admin.js" type="module"></script>
+</body>
+</html>
