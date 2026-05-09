@@ -52,12 +52,25 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (user) {
             syncCartWithFirestore(user.uid);
+            
+            // Real-time Navbar Profile Image Sync
+            onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+                if (docSnap.exists()) {
+                    updateNavbarProfileImage(user, docSnap.data());
+                } else {
+                    updateNavbarProfileImage(user);
+                }
+            });
+
             // If on cart page, render it
             if (window.location.pathname.includes('cart.html')) {
                 renderCart();
             }
         } else {
             cartState = [];
+            // Reset navbar image on logout
+            updateNavbarProfileImage(null);
+            
             if (window.location.pathname.includes('cart.html')) {
                 window.location.href = 'index.html';
             }
@@ -188,6 +201,38 @@ async function updateNavbarUI(user) {
             });
         }
     });
+}
+
+/**
+ * Update Navbar Profile Image Dynamically
+ */
+function updateNavbarProfileImage(user, firestoreData = null) {
+    const navItem = Array.from(document.querySelectorAll('.nav-item')).find(item => 
+        item.innerText.toLowerCase().includes('profile')
+    );
+    if (!navItem) return;
+
+    const iconContainer = navItem.querySelector('i') || navItem.querySelector('img');
+    if (!iconContainer) return;
+
+    if (!user) {
+        // Reset to default icon
+        const icon = document.createElement('i');
+        icon.className = 'far fa-user';
+        iconContainer.replaceWith(icon);
+        return;
+    }
+
+    // Priority: Firestore photoURL > Auth photoURL > Default Avatar
+    const fullName = firestoreData?.fullName || user.displayName || 'User';
+    const profilePic = firestoreData?.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
+
+    const img = document.createElement('img');
+    img.src = profilePic;
+    img.className = 'nav-profile-img';
+    img.alt = 'Profile';
+    
+    iconContainer.replaceWith(img);
 }
 
 /**
