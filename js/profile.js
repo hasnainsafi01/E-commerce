@@ -26,6 +26,7 @@ const firebaseConfig = {
 // Cloudinary Configuration
 const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqsvcn94y/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "shophub_profiles";
+const CLOUDINARY_FOLDER = "E-commerce";
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
@@ -161,9 +162,9 @@ function setupAvatarUpload() {
         if (!file) return;
 
         // Validate file type
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-        if (!validTypes.includes(file.type)) {
-            alert('Please select a valid image (JPG, PNG, or WEBP)');
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            window.showToast('Please upload only JPG, PNG, or WEBP images.', 'error');
             return;
         }
 
@@ -177,6 +178,7 @@ function setupAvatarUpload() {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+        formData.append('folder', CLOUDINARY_FOLDER);
 
         try {
             const response = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });

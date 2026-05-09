@@ -45,6 +45,57 @@ function initDashboard() {
     if (path.includes('products.html')) loadManageProducts();
     if (path.includes('orders.html')) loadOrders();
     if (path.includes('history.html')) loadHistory();
+    injectToastContainer();
+}
+
+/**
+ * Global Toast System for Admin
+ */
+function injectToastContainer() {
+    if (document.getElementById('toast-container')) return;
+    const container = document.createElement('div');
+    container.id = 'toast-container';
+    container.className = 'toast-container';
+    document.body.appendChild(container);
+}
+
+window.showToast = (message, type = 'success', duration = 5000) => {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    
+    const icons = {
+        success: 'fa-check-circle',
+        error: 'fa-exclamation-circle',
+        info: 'fa-info-circle'
+    };
+
+    toast.innerHTML = `
+        <div class="toast-icon">
+            <i class="fas ${icons[type] || icons.info}"></i>
+        </div>
+        <div class="toast-content">
+            <p>${message}</p>
+        </div>
+        <button class="toast-close" aria-label="Close notification">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+
+    container.appendChild(toast);
+
+    const timer = setTimeout(() => dismissToast(toast), duration);
+    toast.querySelector('.toast-close').addEventListener('click', () => {
+        clearTimeout(timer);
+        dismissToast(toast);
+    });
+}
+
+function dismissToast(toast) {
+    toast.classList.add('hide');
+    toast.addEventListener('animationend', () => toast.remove());
 }
 
 /**
@@ -138,6 +189,14 @@ function setupAddProduct() {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validate file type
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            window.showToast('Please upload only JPG, PNG, or WEBP images.', 'error');
+            fileInput.value = '';
+            return;
+        }
+
         // Preview
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -146,21 +205,27 @@ function setupAddProduct() {
         reader.readAsDataURL(file);
 
         // Upload to Cloudinary
-        dropzone.querySelector('p').innerText = "Uploading...";
+        dropzone.querySelector('p').innerText = "Uploading to Cloudinary...";
         try {
             const formData = new FormData();
             formData.append('file', file);
             formData.append('upload_preset', 'shophub_products'); 
+            formData.append('folder', 'E-commerce');
 
-            const res = await fetch('https://api.cloudinary.com/v1_1/dhf4u57ly/image/upload', {
+            const res = await fetch('https://api.cloudinary.com/v1_1/dqsvcn94y/image/upload', {
                 method: 'POST',
                 body: formData
             });
+            
+            if (!res.ok) throw new Error('Cloudinary upload failed');
+            
             const data = await res.json();
             uploadedImageUrl = data.secure_url;
             dropzone.querySelector('p').innerText = "Upload Complete!";
+            window.showToast("Image uploaded successfully!");
         } catch (error) {
-            alert("Upload failed. Check Cloudinary settings.");
+            console.error("Cloudinary Error:", error);
+            window.showToast("Upload failed. Check your connection or Cloudinary settings.", "error");
             dropzone.querySelector('p').innerText = "Upload failed. Try again.";
         }
     });
@@ -168,7 +233,7 @@ function setupAddProduct() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!uploadedImageUrl) {
-            alert("Please upload a product image first.");
+            window.showToast("Please upload a product image first.", "error");
             return;
         }
 
@@ -186,12 +251,13 @@ function setupAddProduct() {
         try {
             const docRef = await addDoc(collection(db, "products"), product);
             await logAction('added', 'product', product.productName);
-            alert("Product added successfully!");
+            window.showToast("Product added successfully!");
             form.reset();
             previewContainer.innerHTML = '';
             uploadedImageUrl = null;
+            dropzone.querySelector('p').innerText = "Click or drag image to upload to Cloudinary";
         } catch (error) {
-            alert("Error adding product: " + error.message);
+            window.showToast("Error adding product: " + error.message, "error");
         }
     });
 }
