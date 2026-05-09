@@ -9,7 +9,7 @@ import {
     updatePassword, updateEmail, reauthenticateWithCredential, EmailAuthProvider 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
-    getFirestore, doc, getDoc, updateDoc, collection, 
+    getFirestore, doc, getDoc, updateDoc, setDoc, collection, 
     query, where, getDocs, orderBy, onSnapshot 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
@@ -73,19 +73,28 @@ function monitorAuthState() {
  */
 function updateUIWithUserData(user, firestoreData = null) {
     const fullName = firestoreData?.fullName || user.displayName || 'ShopHub User';
+    const firstName = firestoreData?.firstName || (user.displayName ? user.displayName.split(' ')[0] : '');
+    const lastName = firestoreData?.lastName || (user.displayName ? user.displayName.split(' ').slice(1).join(' ') : '');
     const email = user.email;
     const profilePic = firestoreData?.profileImage || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
 
     const nameEl = document.getElementById('user-fullname');
     const emailEl = document.getElementById('user-email');
     const avatarEl = document.getElementById('user-avatar');
-    const inputNameEl = document.getElementById('full-name');
+    
+    // Settings inputs
+    const inputFirstNameEl = document.getElementById('first-name-input');
+    const inputLastNameEl = document.getElementById('last-name-input');
+    const inputFullNameEl = document.getElementById('full-name');
     const inputEmailEl = document.getElementById('email-address');
 
     if (nameEl) nameEl.innerText = fullName;
     if (emailEl) emailEl.innerText = email;
     if (avatarEl) avatarEl.src = profilePic;
-    if (inputNameEl) inputNameEl.value = fullName;
+    
+    if (inputFirstNameEl) inputFirstNameEl.value = firstName;
+    if (inputLastNameEl) inputLastNameEl.value = lastName;
+    if (inputFullNameEl) inputFullNameEl.value = fullName;
     if (inputEmailEl) inputEmailEl.value = email;
 
     // Update member date
@@ -212,35 +221,90 @@ function setupSettingsForm() {
     const form = document.getElementById('settings-form');
     if (!form) return;
 
+    const messageEl = document.getElementById('settings-message');
+    const saveBtn = document.getElementById('save-settings-btn');
+
+    const showMessage = (text, type = 'success') => {
+        messageEl.innerText = text;
+        messageEl.className = `settings-message ${type}`;
+        messageEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        if (type === 'success') {
+            setTimeout(() => {
+                messageEl.style.display = 'none';
+            }, 5000);
+        }
+    };
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const fullName = document.getElementById('full-name').value;
-        const newPassword = document.getElementById('current-password').value;
+        
+        const firstName = document.getElementById('first-name-input').value.trim();
+        const lastName = document.getElementById('last-name-input').value.trim();
+        const fullName = document.getElementById('full-name').value.trim();
+        
+        const currentPassword = document.getElementById('current-password').value;
+        const newPassword = document.getElementById('new-password').value;
+        const confirmPassword = document.getElementById('confirm-password').value;
+
+        if (!firstName || !lastName || !fullName) {
+            showMessage('Please fill in all required profile fields.', 'error');
+            return;
+        }
+
+        const originalBtnText = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        saveBtn.disabled = true;
 
         try {
-            // Update UI/Auth
+            // 1. Update Profile (Firestore + Auth)
+            const userRef = doc(db, "users", auth.currentUser.uid);
+            await updateDoc(userRef, {
+                firstName,
+                lastName,
+                fullName,
+                updatedAt: new Date()
+            });
+
             if (fullName !== auth.currentUser.displayName) {
                 await updateProfile(auth.currentUser, { displayName: fullName });
             }
 
-            // Update Firestore
-            await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                fullName: fullName,
-                updatedAt: new Date()
-            });
-
-            // Password update (Requires recent login, will error if not)
+            // 2. Handle Password Change if requested
             if (newPassword) {
+                if (!currentPassword) {
+                    throw new Error('Current password is required to change your password.');
+                }
+                if (newPassword.length < 6) {
+                    throw new Error('New password must be at least 6 characters long.');
+                }
+                if (newPassword !== confirmPassword) {
+                    throw new Error('New passwords do not match.');
+                }
+
+                // Re-authenticate
+                const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+                await reauthenticateWithCredential(auth.currentUser, credential);
+                
+                // Update Password
                 await updatePassword(auth.currentUser, newPassword);
+                
+                // Clear password fields
+                document.getElementById('current-password').value = '';
+                document.getElementById('new-password').value = '';
+                document.getElementById('confirm-password').value = '';
             }
 
-            alert('Profile updated successfully!');
+            showMessage('Profile updated successfully!');
+            
         } catch (error) {
-            if (error.code === 'auth/requires-recent-login') {
-                alert('Please re-login to change your password for security.');
-            } else {
-                alert('Update failed: ' + error.message);
-            }
+            console.error('Settings update error:', error);
+            let msg = error.message;
+            if (error.code === 'auth/wrong-password') msg = 'Current password is incorrect.';
+            if (error.code === 'auth/requires-recent-login') msg = 'Please re-login to update your password.';
+            showMessage(msg, 'error');
+        } finally {
+            saveBtn.innerHTML = originalBtnText;
+            saveBtn.disabled = false;
         }
     });
 }

@@ -358,10 +358,57 @@ hr {
     border: 1px solid rgba(0,0,0,0.05);
 }
 
+.settings-message {
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.settings-message.success {
+    display: block;
+    background: rgba(52, 168, 83, 0.1);
+    color: #1e7e34;
+    border: 1px solid rgba(52, 168, 83, 0.2);
+}
+
+.settings-message.error {
+    display: block;
+    background: rgba(234, 67, 53, 0.1);
+    color: #d93025;
+    border: 1px solid rgba(234, 67, 53, 0.2);
+}
+
+.form-divider {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.5rem 0 0.5rem;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.form-divider span {
+    flex-shrink: 0;
+}
+
+.form-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #eee;
+}
+
 .form-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
+    gap: 1.5rem;
 }
 
 .form-group {
@@ -371,7 +418,7 @@ hr {
 }
 
 .form-group.full-width {
-    grid-column: span 2;
+    grid-column: 1 / -1;
 }
 
 .form-group label {

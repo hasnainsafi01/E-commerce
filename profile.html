@@ -146,22 +146,45 @@
                     </div>
                     <div class="settings-card">
                         <form id="settings-form" class="settings-form">
+                            <div id="settings-message" class="settings-message"></div>
+                            
                             <div class="form-grid">
                                 <div class="form-group">
-                                    <label for="full-name">Full Name</label>
-                                    <input type="text" id="full-name" value="" placeholder="Your full name">
+                                    <label for="first-name-input">First Name</label>
+                                    <input type="text" id="first-name-input" placeholder="First Name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="last-name-input">Last Name</label>
+                                    <input type="text" id="last-name-input" placeholder="Last Name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="full-name">Display Name (Full Name)</label>
+                                    <input type="text" id="full-name" placeholder="Full Name" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="email-address">Email Address</label>
-                                    <input type="email" id="email-address" value="" placeholder="Your email" disabled>
+                                    <input type="email" id="email-address" placeholder="Your email" disabled>
                                 </div>
+                                
+                                <div class="form-divider full-width">
+                                    <span>Change Password</span>
+                                </div>
+
                                 <div class="form-group full-width">
-                                    <label for="current-password">Current Password</label>
+                                    <label for="current-password">Current Password (Required for security)</label>
                                     <input type="password" id="current-password" placeholder="••••••••••••">
+                                </div>
+                                <div class="form-group">
+                                    <label for="new-password">New Password</label>
+                                    <input type="password" id="new-password" placeholder="Min. 6 characters">
+                                </div>
+                                <div class="form-group">
+                                    <label for="confirm-password">Confirm New Password</label>
+                                    <input type="password" id="confirm-password" placeholder="Repeat new password">
                                 </div>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                <button type="submit" class="btn btn-primary" id="save-settings-btn">Save Changes</button>
                                 <button type="button" class="btn btn-logout" onclick="handleLogout()">
                                     <i class="fas fa-sign-out-alt"></i> Log Out
                                 </button>
