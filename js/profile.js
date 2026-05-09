@@ -78,14 +78,9 @@ function updateUIWithUserData(user, firestoreData = null) {
     const email = user.email;
     const profilePic = firestoreData?.profileImage || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
 
-    const nameEl = document.getElementById('user-fullname');
-    const emailEl = document.getElementById('user-email');
-    const avatarEl = document.getElementById('user-avatar');
-    
     // Settings inputs
     const inputFirstNameEl = document.getElementById('first-name-input');
     const inputLastNameEl = document.getElementById('last-name-input');
-    const inputFullNameEl = document.getElementById('full-name');
     const inputEmailEl = document.getElementById('email-address');
 
     if (nameEl) nameEl.innerText = fullName;
@@ -94,7 +89,6 @@ function updateUIWithUserData(user, firestoreData = null) {
     
     if (inputFirstNameEl) inputFirstNameEl.value = firstName;
     if (inputLastNameEl) inputLastNameEl.value = lastName;
-    if (inputFullNameEl) inputFullNameEl.value = fullName;
     if (inputEmailEl) inputEmailEl.value = email;
 
     // Update member date
@@ -228,14 +222,14 @@ function setupSettingsForm() {
         
         const firstName = document.getElementById('first-name-input').value.trim();
         const lastName = document.getElementById('last-name-input').value.trim();
-        const fullName = document.getElementById('full-name').value.trim();
+        const fullName = `${firstName} ${lastName}`.trim();
         
         const currentPassword = document.getElementById('current-password').value;
         const newPassword = document.getElementById('new-password').value;
         const confirmPassword = document.getElementById('confirm-password').value;
 
-        if (!firstName || !lastName || !fullName) {
-            window.showToast('Please fill in all required profile fields.', 'error');
+        if (!firstName || !lastName) {
+            window.showToast('Please fill in both First and Last names.', 'error');
             return;
         }
 
@@ -249,12 +243,14 @@ function setupSettingsForm() {
             await updateDoc(userRef, {
                 firstName,
                 lastName,
-                fullName,
                 updatedAt: new Date()
             });
 
             if (fullName !== auth.currentUser.displayName) {
                 await updateProfile(auth.currentUser, { displayName: fullName });
+                // Update sidebar UI instantly
+                const nameEl = document.getElementById('user-fullname');
+                if (nameEl) nameEl.innerText = fullName;
             }
 
             // 2. Handle Password Change if requested
