@@ -21,19 +21,38 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 onAuthStateChanged(auth, async (user) => {
+    const loader = document.getElementById('admin-loader');
+    
     if (!user) {
-        window.location.href = '../index.html';
+        console.warn("No authenticated user found. Redirecting to home...");
+        window.location.replace('../index.html');
         return;
     }
 
     try {
-        const userDoc = await getDoc(doc(db, "users", user.uid));
-        if (!userDoc.exists() || userDoc.data().role !== 'admin') {
-            console.error("Access denied: Not an admin");
-            window.location.href = '../index.html';
+        // Fetch user document to check role
+        const userDocRef = doc(db, "users", user.uid);
+        const userDoc = await getDoc(userDocRef);
+
+        if (userDoc.exists() && userDoc.data().role === 'admin') {
+            console.log("Admin access granted.");
+            
+            // Success: Remove loading state and reveal content
+            if (loader) {
+                loader.classList.add('hidden');
+                setTimeout(() => {
+                    loader.style.display = 'none';
+                    document.body.classList.remove('admin-loading');
+                }, 400); // Match CSS transition
+            } else {
+                document.body.classList.remove('admin-loading');
+            }
+        } else {
+            console.error("Access denied: User does not have admin privileges.");
+            window.location.replace('../index.html');
         }
     } catch (error) {
-        console.error("Security check failed:", error);
-        window.location.href = '../index.html';
+        console.error("Security verification failed:", error);
+        window.location.replace('../index.html');
     }
 });

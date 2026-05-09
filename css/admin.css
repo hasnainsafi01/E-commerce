@@ -15,6 +15,68 @@ body.admin-body {
     margin: 0;
     display: flex;
     min-height: 100vh;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+body.admin-loading {
+    overflow: hidden !important;
+}
+
+body.admin-loading .admin-sidebar,
+body.admin-loading .admin-main {
+    display: none !important;
+}
+
+/* Admin Loader Overlay */
+#admin-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.loader-content {
+    text-align: center;
+}
+
+.loader-spinner {
+    width: 50px;
+    height: 50px;
+    border: 3px solid rgba(0, 82, 204, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--admin-primary);
+    animation: spin 1s ease-in-out infinite;
+    margin: 0 auto 1.5rem;
+}
+
+.loader-content h2 {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    color: var(--admin-text);
+    margin-bottom: 0.5rem;
+}
+
+.loader-content p {
+    color: var(--admin-text-muted);
+    font-size: 0.9rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+#admin-loader.hidden {
+    opacity: 0;
+    visibility: hidden;
 }
 
 /* Sidebar */
