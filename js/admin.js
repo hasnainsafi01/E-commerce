@@ -1,5 +1,5 @@
 /**
- * ShopHub Admin Core Logic
+ * Chenari Admin Core Logic
  * Handles Dashboard stats, Product CRUD, Order management, and Activity logs.
  */
 

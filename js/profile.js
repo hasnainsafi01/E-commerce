@@ -1,5 +1,5 @@
 /**
- * ShopHub User Profile Logic - Module
+ * Chenari User Profile Logic - Module
  * Integration with Firebase Auth, Firestore, and Cloudinary
  */
 
@@ -76,7 +76,7 @@ function monitorAuthState() {
 function updateUIWithUserData(user, firestoreData = null) {
     const firstName = firestoreData?.firstName || '';
     const lastName = firestoreData?.lastName || '';
-    const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (user.displayName || 'ShopHub User');
+    const fullName = (firstName && lastName) ? `${firstName} ${lastName}` : (user.displayName || 'Chenari User');
     const email = user.email;
     
     // Priority Logic: 1. Firestore photoURL (Uploaded/Synced) > 2. Firebase Auth photoURL > 3. UI-Avatar
