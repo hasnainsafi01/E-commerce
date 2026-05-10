@@ -1,32 +1,22 @@
 /**
- * Admin Security Guard - DEBUG MODE (Bypass Active)
- * Temporarily allows direct access to admin routes for debugging.
+ * Admin Security Guard - FULL DEBUG MODE
+ * AGGRESSIVE BYPASS: No Auth, No Firestore, No Loader.
  */
 
-// ─── UI refs ──────────────────────────────────────────────────────────────────
-const loader    = document.getElementById('admin-loader');
+// Force reveal UI immediately
+document.body.classList.remove('admin-loading');
+const loader = document.getElementById('admin-loader');
+if (loader) loader.style.display = 'none';
 
-function hideLoader() {
-    document.body.classList.remove('admin-loading');
-    if (loader) {
-        loader.classList.add('hidden');
-        setTimeout(() => { loader.style.display = 'none'; }, 400);
-    }
-}
-
-// DEBUG: Immediately reveal UI and allow admin.js to start
-console.warn("ADMIN SECURITY BYPASS ACTIVE: Running in Debug Mode.");
-
-// Dispatch mock event so admin.js starts immediately with a dummy admin profile
+// Dispatch mock event so admin.js starts immediately
 document.dispatchEvent(new CustomEvent('admin-verified', {
     detail: { 
         user: { 
             uid: "debug-admin", 
             fullName: "Debug Administrator", 
-            role: "admin",
-            email: "debug@mymart.com" 
+            role: "admin" 
         } 
     }
 }));
 
-hideLoader();
+console.warn("ADMIN DEBUG MODE: ALL SECURITY DISABLED.");
