@@ -367,9 +367,9 @@ window.editProduct = async (id) => {
     if (!snap.exists()) return;
     const p = snap.data();
     document.getElementById('edit-id').value = id;
-    document.getElementById('edit-name').value = p.productName;
-    document.getElementById('edit-price').value = p.productPrice;
-    document.getElementById('edit-stock').value = p.stock;
+    document.getElementById('edit-name').value = p.name || p.productName || '';
+    document.getElementById('edit-price').value = p.price || p.productPrice || 0;
+    document.getElementById('edit-stock').value = p.stock || 0;
     document.getElementById('editProductModal').style.display = 'flex';
 };
 
@@ -439,5 +439,25 @@ document.addEventListener('DOMContentLoaded', () => {
         await logAction('updated order status', '#' + id.substring(0, 8));
         document.getElementById('orderDetailModal').style.display = 'none';
         window.showToast("Order status updated.");
+    };
+
+    // Save Edited Product
+    const editForm = document.getElementById('edit-product-form');
+    if (editForm) editForm.onsubmit = async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('edit-id').value;
+        const name = document.getElementById('edit-name').value;
+        const price = parseFloat(document.getElementById('edit-price').value);
+        const stock = parseInt(document.getElementById('edit-stock').value);
+
+        await updateDoc(doc(db, "products", id), {
+            name,
+            price,
+            stock
+        });
+
+        await logAction('edited product', name);
+        document.getElementById('editProductModal').style.display = 'none';
+        window.showToast("Product updated successfully!");
     };
 });
