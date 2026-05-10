@@ -92,10 +92,10 @@ const GRID_CATEGORY_MAP = {
     'men-grid':              'men',
     'women-grid':            'women',
     'electronics-grid':      'electronics',
-    'essentials-grid':       'essentials',
-    'trending-grid':         null,   // load any 4 products (homepage trending)
-    'featured-categories':   null,   // homepage: load a broad mix
-    'new-arrivals':          null,   // homepage: load newest products
+    'essentials-grid':       'home',
+    'trending-grid':         'trending',
+    'new-arrivals':          'new',   // special handling in loadProducts
+    'featured-categories':   null,    // broad mix
 };
 
 async function loadProducts() {
@@ -103,47 +103,35 @@ async function loadProducts() {
 
     for (const grid of grids) {
         const gridId = grid.id || '';
-
-        // Skip grids handled by other functions
         if (!gridId || gridId === 'related-products' || gridId === 'saved-items-grid') continue;
 
-        const limit = grid.hasAttribute('data-count')
-            ? parseInt(grid.getAttribute('data-count'))
-            : 8;
+        const limitCount = grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8;
 
         try {
             let products = [];
+            const category = GRID_CATEGORY_MAP[gridId];
 
-            // Check if this grid ID is in our map
-            if (gridId in GRID_CATEGORY_MAP) {
-                const category = GRID_CATEGORY_MAP[gridId];
-
-                if (category !== null) {
-                    // Specific category — query by category
-                    const q = query(collection(db, 'products'), where('category', '==', category));
-                    const snapshot = await getDocs(q);
-                    products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                } else {
-                    // Generic homepage grid — pull a shuffled cross-category mix
-                    const snapshot = await getDocs(collection(db, 'products'));
-                    let all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                    all = all.sort(() => Math.random() - 0.5);
-                    products = all.slice(0, limit);
-                }
-
-            } else {
-                // Fallback: derive category by stripping '-grid' suffix
-                const category = gridId.replace('-grid', '');
-                if (!category) continue;
-                const q = query(collection(db, 'products'), where('category', '==', category));
+            if (category === 'new') {
+                // New Arrivals: Latest products across all categories
+                const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(limitCount));
                 const snapshot = await getDocs(q);
                 products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            } else if (category) {
+                // Specific Category
+                const q = query(collection(db, 'products'), where('category', '==', category), limit(limitCount));
+                const snapshot = await getDocs(q);
+                products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            } else {
+                // Generic Mix (Featured)
+                const snapshot = await getDocs(query(collection(db, 'products'), limit(20)));
+                let all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                all = all.sort(() => Math.random() - 0.5);
+                products = all.slice(0, limitCount);
             }
 
-            if (products.length === 0) continue; // keep skeleton placeholders
-
-            renderProducts(grid, products.slice(0, limit));
-
+            if (products.length > 0) {
+                renderProducts(grid, products);
+            }
         } catch (error) {
             console.error(`Error loading products for grid "${gridId}":`, error);
         }

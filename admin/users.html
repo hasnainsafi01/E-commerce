@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Activity Logs | MyMart Admin</title>
-    <!-- Google Fonts -->
+    <title>Manage Users | MyMart Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
-    <!-- Critical Security Styles: Prevents UI flicker before JS auth check -->
     <style>
         body.admin-loading .admin-sidebar,
         body.admin-loading .admin-main {
@@ -40,8 +36,8 @@
             <a href="add-product.html" class="nav-link"><i class="fas fa-plus-circle"></i> <span>Add Product</span></a>
             <a href="products.html" class="nav-link"><i class="fas fa-box"></i> <span>Manage Products</span></a>
             <a href="orders.html" class="nav-link"><i class="fas fa-shopping-bag"></i> <span>Orders</span></a>
-            <a href="users.html" class="nav-link"><i class="fas fa-users"></i> <span>Manage Users</span></a>
-            <a href="history.html" class="nav-link active"><i class="fas fa-history"></i> <span>History</span></a>
+            <a href="users.html" class="nav-link active"><i class="fas fa-users"></i> <span>Manage Users</span></a>
+            <a href="history.html" class="nav-link"><i class="fas fa-history"></i> <span>History</span></a>
         </nav>
         <div class="sidebar-footer">
             <a href="../index.html" class="nav-link"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
@@ -52,36 +48,60 @@
     <main class="admin-main">
         <header class="admin-header">
             <div>
-                <h1>Activity Logs</h1>
-                <p style="color: var(--admin-text-muted);">Track all administrative actions performed on the platform.</p>
+                <h1>Manage Users</h1>
+                <p style="color: var(--admin-text-muted);">View and manage registered customers and administrators.</p>
             </div>
-            <button class="btn btn-outline" id="clear-logs">Clear Recent Logs</button>
         </header>
 
         <div class="admin-card">
             <div class="card-header">
-                <h3>Admin History</h3>
+                <h3>Registered Users</h3>
             </div>
-            <table class="admin-table" id="history-table">
+            <table class="admin-table" id="users-table">
                 <thead>
                     <tr>
-                        <th>Timestamp</th>
-                        <th>Admin</th>
-                        <th>Action</th>
-                        <th>Entity</th>
-                        <th>Status</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     <!-- Dynamic -->
                 </tbody>
             </table>
-            <div id="history-empty" class="empty-state" style="padding: 4rem; display: none;">
-                <i class="fas fa-history"></i>
-                <h3>No activity logs found</h3>
+            <div id="users-empty" class="empty-state" style="padding: 4rem; display: none;">
+                <i class="fas fa-users"></i>
+                <h3>No users found</h3>
             </div>
         </div>
     </main>
+
+    <!-- User Detail Modal -->
+    <div class="modal-overlay" id="userDetailModal">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="card-header">
+                <h3>Edit User Role</h3>
+                <i class="fas fa-times modal-close" id="close-user-modal"></i>
+            </div>
+            <div style="padding: 1.5rem;">
+                <div id="user-info-brief" style="margin-bottom: 1.5rem;"></div>
+                <div class="form-group full-width">
+                    <label for="update-user-role">Account Role</label>
+                    <select id="update-user-role" style="width: 100%; padding: 0.75rem; border: 1px solid var(--admin-border); border-radius: 8px;">
+                        <option value="user">User (Standard)</option>
+                        <option value="admin">Administrator (Full Access)</option>
+                    </select>
+                </div>
+                <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                    <button class="btn btn-primary w-100" id="save-user-role">Save Changes</button>
+                    <button class="btn btn-outline w-100" id="close-user-btn">Cancel</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Scripts -->
     <script src="../js/admin-guard.js" type="module"></script>
