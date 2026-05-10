@@ -106,35 +106,32 @@ async function loadProducts() {
         if (!gridId || gridId === 'related-products' || gridId === 'saved-items-grid') continue;
 
         const limitCount = grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8;
+        const category = GRID_CATEGORY_MAP[gridId];
 
-        try {
-            let products = [];
-            const category = GRID_CATEGORY_MAP[gridId];
+        let q;
+        if (category === 'new') {
+            q = query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(limitCount));
+        } else if (category) {
+            q = query(collection(db, 'products'), where('category', '==', category), limit(limitCount));
+        } else {
+            q = query(collection(db, 'products'), limit(20));
+        }
 
-            if (category === 'new') {
-                // New Arrivals: Latest products across all categories
-                const q = query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(limitCount));
-                const snapshot = await getDocs(q);
-                products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            } else if (category) {
-                // Specific Category
-                const q = query(collection(db, 'products'), where('category', '==', category), limit(limitCount));
-                const snapshot = await getDocs(q);
-                products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-            } else {
-                // Generic Mix (Featured)
-                const snapshot = await getDocs(query(collection(db, 'products'), limit(20)));
-                let all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                all = all.sort(() => Math.random() - 0.5);
-                products = all.slice(0, limitCount);
+        // Use onSnapshot for real-time updates
+        onSnapshot(q, (snapshot) => {
+            let products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            
+            if (!category && !gridId.includes('new-arrivals')) {
+                // Shuffle for generic mix (Featured)
+                products = products.sort(() => Math.random() - 0.5).slice(0, limitCount);
             }
 
             if (products.length > 0) {
                 renderProducts(grid, products);
             }
-        } catch (error) {
-            console.error(`Error loading products for grid "${gridId}":`, error);
-        }
+        }, (error) => {
+            console.error(`Error syncing products for grid "${gridId}":`, error);
+        });
     }
 }
 

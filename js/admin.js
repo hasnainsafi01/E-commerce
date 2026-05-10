@@ -168,12 +168,15 @@ function setupAddProduct() {
                 <p style="margin-top: 10px; font-size: 0.8rem; color: var(--admin-primary);">Image Selected - Click to change</p>
                 <input type="file" id="productImage" accept="image/*" style="display: none;">
             `;
-            // Re-setup listener because we replaced innerHTML
-            dropzone.querySelector('input').addEventListener('change', (ev) => {
-                handleFileSelect(ev.target.files[0]);
-            });
         };
         reader.readAsDataURL(file);
+    };
+
+    // Use delegation so it works even after innerHTML replacement
+    dropzone.addEventListener('change', (e) => {
+        if (e.target.id === 'productImage') {
+            handleFileSelect(e.target.files[0]);
+        }
     });
 
     form.addEventListener('submit', async (e) => {
