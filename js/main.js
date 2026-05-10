@@ -3,7 +3,7 @@
  * Handles Authentication, Cart, and Global UI
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, 
@@ -25,7 +25,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase safely
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const googleProvider = new GoogleAuthProvider();
@@ -714,7 +715,15 @@ async function handleAuthSubmit(e) {
                 photoURL: null, role: 'user', createdAt: new Date(), lastLogin: new Date()
             });
         } else {
-            await signInWithEmailAndPassword(auth, email, password);
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+
+            // Fetch user role from Firestore to determine redirect
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            if (userDoc.exists() && userDoc.data().role === 'admin') {
+                window.location.href = 'admin/index.html';
+                return; // Stop further execution
+            }
         }
         hideAuthModal();
     } catch (error) {
