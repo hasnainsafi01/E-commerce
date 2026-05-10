@@ -303,6 +303,10 @@ body.admin-loading .admin-main {
     background: rgba(0, 82, 204, 0.02);
 }
 
+.upload-dropzone * {
+    pointer-events: none; /* Prevents children like icons/text from blocking the click */
+}
+
 .upload-dropzone i {
     font-size: 2.5rem;
     color: var(--admin-text-muted);

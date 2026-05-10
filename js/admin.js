@@ -44,11 +44,11 @@ function initDashboard() {
     const isOverview = path.includes('index.html') || path.endsWith('/admin') || path.endsWith('/admin/');
     
     if (isOverview) loadOverview();
-    if (path.includes('add-product.html')) setupAddProduct();
-    if (path.includes('products.html')) loadManageProducts();
-    if (path.includes('orders.html')) loadOrders();
-    if (path.includes('users.html')) loadUsers();
-    if (path.includes('history.html')) loadHistory();
+    if (window.location.href.includes('add-product.html')) setupAddProduct();
+    if (window.location.href.includes('products.html')) loadManageProducts();
+    if (window.location.href.includes('orders.html')) loadOrders();
+    if (window.location.href.includes('users.html')) loadUsers();
+    if (window.location.href.includes('history.html')) loadHistory();
     
     injectToastContainer();
 }
@@ -149,7 +149,19 @@ function setupAddProduct() {
     const form = document.getElementById('product-form');
     let uploadedImageUrl = null;
 
-    dropzone.addEventListener('click', () => fileInput.click());
+    if (!dropzone || !fileInput) return;
+
+    // Force pointer cursor and ensure it's clickable
+    dropzone.style.cursor = 'pointer';
+    
+    const triggerUpload = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log("Triggering file input click...");
+        fileInput.click();
+    };
+
+    dropzone.addEventListener('click', triggerUpload);
 
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
