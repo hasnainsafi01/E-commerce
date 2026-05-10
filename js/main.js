@@ -94,6 +94,7 @@ const GRID_CATEGORY_MAP = {
     'electronics-grid':      'electronics',
     'essentials-grid':       'home',
     'trending-grid':         'trending',
+    'clothing-grid':         'clothing',
     'new-arrivals':          'new',   // special handling in loadProducts
     'featured-categories':   null,    // broad mix
 };
