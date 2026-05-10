@@ -82,33 +82,71 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-/**
- * Product Loading & Rendering
- */
+// Map grid IDs → Firestore category names (including homepage special grids)
+const GRID_CATEGORY_MAP = {
+    'shoes-grid':            'shoes',
+    'bags-grid':             'bags',
+    'watches-grid':          'watches',
+    'glasses-grid':          'glasses',
+    'men-grid':              'men',
+    'women-grid':            'women',
+    'electronics-grid':      'electronics',
+    'essentials-grid':       'essentials',
+    'trending-grid':         null,   // load any 4 products (homepage trending)
+    'featured-categories':   null,   // homepage: load a broad mix
+    'new-arrivals':          null,   // homepage: load newest products
+};
+
 async function loadProducts() {
     const grids = document.querySelectorAll('.product-grid');
-    grids.forEach(async (grid) => {
-        // Identify category from ID or data attribute
+
+    for (const grid of grids) {
         const gridId = grid.id || '';
-        const category = gridId.replace('-grid', '');
-        
-        if (!category) return;
+
+        // Skip special grids handled elsewhere (related-products, saved-items, etc.)
+        if (!gridId || gridId === 'related-products' || gridId === 'saved-items-grid') continue;
+
+        const limit = grid.hasAttribute('data-count')
+            ? parseInt(grid.getAttribute('data-count'))
+            : 8;
 
         try {
-            const q = query(collection(db, "products"), where("category", "==", category));
-            const snapshot = await getDocs(q);
-            
-            if (snapshot.empty) {
-                // Keep skeletons as placeholders
-                return;
+            let products = [];
+
+            if (GRID_CATEGORY_MAP[gridId] !== undefined && GRID_CATEGORY_MAP[gridId] !== null) {
+                // Specific category grid
+                const category = GRID_CATEGORY_MAP[gridId];
+                const q = query(collection(db, 'products'), where('category', '==', category));
+                const snapshot = await getDocs(q);
+                products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+            } else if (gridId === 'trending-grid' || gridId === 'featured-categories' || gridId === 'new-arrivals') {
+                // Homepage generic grids — pull a cross-category mix
+                const snapshot = await getDocs(collection(db, 'products'));
+                let all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Shuffle for variety
+                all = all.sort(() => Math.random() - 0.5);
+                products = all.slice(0, limit);
+
+            } else {
+                // Fallback: try stripping '-grid' suffix
+                const category = gridId.replace('-grid', '');
+                if (!category) continue;
+                const q = query(collection(db, 'products'), where('category', '==', category));
+                const snapshot = await getDocs(q);
+                products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             }
 
-            renderProducts(grid, snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            if (products.length === 0) continue; // keep skeleton
+
+            renderProducts(grid, products.slice(0, limit));
+
         } catch (error) {
-            console.error(`Error loading ${category} products:`, error);
+            console.error(`Error loading products for grid "${gridId}":`, error);
         }
-    });
+    }
 }
+
 
 function renderProducts(grid, products) {
     grid.innerHTML = products.map(product => `
