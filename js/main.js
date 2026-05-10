@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     setupNavbarScroll();
     setupNewsletter();
     setupHeroSlider();
+    if (window.location.pathname.includes('product-details.html')) {
+        loadProductDetails();
+    }
     injectAuthModal();
     injectLogoutModal();
     injectToastContainer();
@@ -109,10 +112,10 @@ async function loadProducts() {
 
 function renderProducts(grid, products) {
     grid.innerHTML = products.map(product => `
-        <div class="product-card">
+        <div class="product-card" onclick="window.location.href='product-details.html?id=${product.id}'" style="cursor: pointer;">
             <div class="product-image-container">
                 <img src="${product.productImage}" alt="${product.productName}" class="product-image">
-                <button class="wishlist-btn" onclick="handleAddToWishlist('${product.id}')">
+                <button class="wishlist-btn" onclick="event.stopPropagation(); handleAddToWishlist('${product.id}')">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
@@ -121,13 +124,197 @@ function renderProducts(grid, products) {
                 <h3 class="product-title">${product.productName}</h3>
                 <div class="product-footer">
                     <span class="product-price">$${parseFloat(product.productPrice).toFixed(2)}</span>
-                    <button class="add-to-cart-btn" onclick='handleAddToCart(${JSON.stringify(product)})'>
+                    <button class="add-to-cart-btn" onclick='event.stopPropagation(); handleAddToCart(${JSON.stringify(product).replace(/'/g, "&#39;")})'>
                         <i class="fas fa-shopping-bag"></i>
                     </button>
                 </div>
             </div>
         </div>
     `).join('');
+}
+
+/**
+ * Product Details Loading
+ */
+async function loadProductDetails() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if (!id) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    try {
+        const productDoc = await getDoc(doc(db, "products", id));
+        if (!productDoc.exists()) {
+            window.showToast('Product not found', 'error');
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            return;
+        }
+
+        const product = { id: productDoc.id, ...productDoc.data() };
+
+        // 1. Update Gallery
+        const gallery = document.querySelector('.product-gallery');
+        if (gallery) {
+            gallery.innerHTML = `
+                <img src="${product.productImage}" alt="${product.productName}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover;">
+            `;
+        }
+        
+        // 2. Update Info Panel
+        const infoPanel = document.querySelector('.product-info-panel');
+        if (infoPanel) {
+            const titleEl = document.createElement('h1');
+            titleEl.textContent = product.productName;
+            titleEl.style.fontSize = '2.2rem';
+            titleEl.style.marginBottom = '0.5rem';
+            
+            const ratingHtml = `
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: #ffb800;">
+                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    <span style="color: var(--text-muted); font-size: 0.9rem;">(4.8 • 124 reviews)</span>
+                </div>
+            `;
+            
+            const priceHtml = `<div class="product-price" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem;">$${parseFloat(product.productPrice).toFixed(2)}</div>`;
+            const descHtml = `<p style="margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">${product.description || 'Premium quality product designed for everyday excellence.'}</p>`;
+
+            let colorsHtml = '';
+            if (product.colors && product.colors.length > 0) {
+                colorsHtml = `
+                    <div class="selector-section" style="margin-bottom: 1.5rem;">
+                        <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Color</span>
+                        <div class="options-grid" id="color-options" style="display: flex; gap: 0.8rem;">
+                            ${product.colors.map((c, i) => `
+                                <div class="color-swatch ${i === 0 ? 'active' : ''}" style="width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid ${i === 0 ? 'var(--primary)' : 'transparent'}; background: ${c.toLowerCase() === 'white' ? '#fff; border: 1px solid #ddd' : c}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" data-color="${c}" title="${c}"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            let variantHtml = `
+                <div class="selector-section" style="margin-bottom: 1.5rem;">
+                    <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Selection</span>
+                    <div class="options-grid" id="variant-options" style="display: flex; gap: 0.8rem;">
+                        <div class="option-chip active" style="padding: 0.6rem 1.2rem; border: 1px solid var(--primary); border-radius: var(--radius-md); cursor: pointer; background: rgba(0, 82, 204, 0.05); color: var(--primary); font-weight: 500;" data-variant="standard">Standard</div>
+                        <div class="option-chip" style="padding: 0.6rem 1.2rem; border: 1px solid #ddd; border-radius: var(--radius-md); cursor: pointer; color: var(--text-main);" data-variant="premium">Premium Pack</div>
+                    </div>
+                </div>
+            `;
+
+            const qtyHtml = `
+                <div class="selector-section" style="margin-bottom: 2rem;">
+                    <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Quantity</span>
+                    <select id="product-qty" class="filter-select" style="padding: 0.6rem; border-radius: var(--radius-md); border: 1px solid #ddd; width: 100px; font-size: 1rem;">
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5">5</option>
+                    </select>
+                </div>
+            `;
+
+            const buttonsHtml = `
+                <div class="action-buttons" style="display: flex; gap: 1rem; margin-bottom: 2.5rem;">
+                    <button class="btn btn-primary btn-large" id="detail-add-cart" style="flex: 2; padding: 1.2rem; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                    <button class="btn btn-outline btn-large" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Buy Now</button>
+                    <button class="btn" onclick="handleAddToWishlist('${product.id}')" style="background: #f4f5f7; border-radius: var(--radius-md); padding: 1.2rem; width: 60px;">
+                        <i class="far fa-heart" style="font-size: 1.4rem;"></i>
+                    </button>
+                </div>
+            `;
+
+            const deliveryHtml = `
+                <div style="padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius-md); border: 1px solid #eee;">
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
+                        <i class="fas fa-truck" style="color: var(--primary); font-size: 1.2rem;"></i>
+                        <div>
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">Free Delivery</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Enter your postal code for delivery availability</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <i class="fas fa-undo" style="color: var(--primary); font-size: 1.2rem;"></i>
+                        <div>
+                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">Return Delivery</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted);">Free 30 Days Delivery Returns. <a href="#" style="color: var(--primary);">Details</a></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            infoPanel.innerHTML = '';
+            infoPanel.appendChild(titleEl);
+            infoPanel.insertAdjacentHTML('beforeend', ratingHtml + priceHtml + descHtml + colorsHtml + variantHtml + qtyHtml + buttonsHtml + deliveryHtml);
+
+            // Color Selection Logic
+            const swatches = infoPanel.querySelectorAll('.color-swatch');
+            let selectedColor = product.colors && product.colors.length > 0 ? product.colors[0] : null;
+            swatches.forEach(swatch => {
+                swatch.addEventListener('click', () => {
+                    swatches.forEach(s => { s.classList.remove('active'); s.style.borderColor = 'transparent'; });
+                    swatch.classList.add('active');
+                    swatch.style.borderColor = 'var(--primary)';
+                    selectedColor = swatch.dataset.color;
+                });
+            });
+
+            // Variant Selection Logic
+            const chips = infoPanel.querySelectorAll('.option-chip');
+            let selectedVariant = 'standard';
+            chips.forEach(chip => {
+                chip.addEventListener('click', () => {
+                    chips.forEach(c => { c.classList.remove('active'); c.style.borderColor = '#ddd'; c.style.background = 'transparent'; c.style.color = 'var(--text-main)'; });
+                    chip.classList.add('active');
+                    chip.style.borderColor = 'var(--primary)';
+                    chip.style.background = 'rgba(0, 82, 204, 0.05)';
+                    chip.style.color = 'var(--primary)';
+                    selectedVariant = chip.dataset.variant;
+                });
+            });
+
+            // Add to Cart Bind
+            const addToCartBtn = document.getElementById('detail-add-cart');
+            addToCartBtn.addEventListener('click', () => {
+                const qty = parseInt(document.getElementById('product-qty').value);
+                const cartItem = {
+                    ...product,
+                    selectedColor,
+                    selectedVariant
+                };
+                for(let i=0; i<qty; i++){
+                    window.handleAddToCart(cartItem);
+                }
+            });
+        }
+
+        // 3. Fetch Related Products
+        const q = query(collection(db, "products"), where("category", "==", product.category));
+        const relSnapshot = await getDocs(q);
+        let relatedProducts = [];
+        relSnapshot.forEach(doc => {
+            if (doc.id !== product.id) {
+                relatedProducts.push({ id: doc.id, ...doc.data() });
+            }
+        });
+        
+        const relContainer = document.getElementById('related-products');
+        if (relContainer) {
+            if (relatedProducts.length > 0) {
+                renderProducts(relContainer, relatedProducts.slice(0, 4));
+            } else {
+                relContainer.innerHTML = '<p style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 2rem 0;">No similar products found.</p>';
+            }
+        }
+
+    } catch (error) {
+        console.error("Error loading product details:", error);
+    }
 }
 
 function initSkeletons() {
