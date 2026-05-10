@@ -3,7 +3,7 @@
  * Handles Dashboard stats, Product CRUD, Order management, and Activity logs.
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, 
@@ -20,7 +20,8 @@ const firebaseConfig = {
     appId: "1:261283936769:web:ce65b52a9dbc1df0f6de00"
 };
 
-const app = initializeApp(firebaseConfig);
+// Reuse existing Firebase app to prevent duplicate-app crash (admin-guard.js runs first)
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
