@@ -55,7 +55,8 @@ function monitorAuthState() {
             
             // Listen for Firestore updates
             onSnapshot(doc(db, "users", user.uid), (docSnap) => {
-                if (docSnap.exists()) {
+                // Prevent premature UI updates by ignoring local optimistic writes
+                if (docSnap.exists() && !docSnap.metadata.hasPendingWrites) {
                     updateUIWithUserData(user, docSnap.data());
                 }
             });
@@ -242,7 +243,8 @@ function setupSettingsForm() {
             return;
         }
 
-        const originalBtnText = saveBtn.innerHTML;
+        if (saveBtn.disabled) return; // Prevent double submission
+
         saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
         saveBtn.disabled = true;
 
@@ -258,10 +260,6 @@ function setupSettingsForm() {
             if (fullName !== auth.currentUser.displayName) {
                 await updateProfile(auth.currentUser, { displayName: fullName });
             }
-
-            // Update UI instantly across the page
-            const nameEl = document.getElementById('user-fullname');
-            if (nameEl) nameEl.innerText = fullName;
 
             // 2. Handle Password Change if requested
             if (newPassword) {
@@ -288,7 +286,11 @@ function setupSettingsForm() {
                 document.getElementById('confirm-password').value = '';
             }
 
-            window.showToast('Profile updated successfully!');
+            // 3. Update UI locally ONLY AFTER all saves complete successfully
+            const nameEl = document.getElementById('user-fullname');
+            if (nameEl) nameEl.innerText = fullName;
+
+            window.showToast('Profile updated successfully!', 'success');
             
         } catch (error) {
             console.error('Settings update error:', error);
@@ -297,7 +299,7 @@ function setupSettingsForm() {
             if (error.code === 'auth/requires-recent-login') msg = 'Please re-login to update your password.';
             window.showToast(msg, 'error');
         } finally {
-            saveBtn.innerHTML = originalBtnText;
+            saveBtn.innerHTML = 'Save Changes';
             saveBtn.disabled = false;
         }
     });
