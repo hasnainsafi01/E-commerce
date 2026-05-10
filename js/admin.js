@@ -26,8 +26,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // Cloudinary Configuration
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqsvcn94y/image/upload";
-const CLOUDINARY_UPLOAD_PRESET = "shophub_products"; // Ensure this preset exists in your Cloudinary
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dxpmh3rf6/image/upload";
+const CLOUDINARY_UPLOAD_PRESET = "E-commerce"; 
 
 let currentAdmin = null;
 
