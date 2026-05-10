@@ -108,12 +108,11 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label>Product Image</label>
-                        <div class="upload-dropzone" id="image-dropzone">
+                        <label class="upload-dropzone" id="image-dropzone" for="productImage">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Click or drag image to upload to Cloudinary</p>
-                            <input type="file" id="productImage" hidden accept="image/*">
-                        </div>
+                            <input type="file" id="productImage" accept="image/*" style="display: none;">
+                        </label>
                         <div id="image-preview-container" class="preview-grid">
                             <!-- Preview Image -->
                         </div>

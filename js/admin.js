@@ -151,17 +151,8 @@ function setupAddProduct() {
 
     if (!dropzone || !fileInput) return;
 
-    // Force pointer cursor and ensure it's clickable
-    dropzone.style.cursor = 'pointer';
-    
-    const triggerUpload = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        console.log("Triggering file input click...");
-        fileInput.click();
-    };
-
-    dropzone.addEventListener('click', triggerUpload);
+    // Native label handles the click now. 
+    // We only need the change listener for the upload logic.
 
     fileInput.addEventListener('change', async (e) => {
         const file = e.target.files[0];
