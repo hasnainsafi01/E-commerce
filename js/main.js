@@ -1,5 +1,5 @@
 /**
- * Chenari Core Logic - Module
+ * MyMart Core Logic - Module
  * Handles Authentication, Cart, and Global UI
  */
 
@@ -549,7 +549,7 @@ function injectLogoutModal() {
                 </div>
                 <div class="auth-header">
                     <h2>Logout Confirmation</h2>
-                    <p>Are you sure you want to log out of your Chenari account?</p>
+                    <p>Are you sure you want to log out of your MyMart account?</p>
                 </div>
                 <div class="logout-actions">
                     <button class="btn btn-outline" id="cancel-logout">Cancel</button>
@@ -658,7 +658,7 @@ window.showAuthModal = (signup = false) => {
     errorMsg.innerText = '';
     if (isSignUpMode) {
         title.innerText = 'Create Account';
-        subtitle.innerText = 'Join Chenari today for exclusive deals';
+        subtitle.innerText = 'Join MyMart today for exclusive deals';
         nameFields.style.display = 'block';
         confirmPassField.style.display = 'block';
         submitBtn.innerText = 'Sign Up';
@@ -743,7 +743,7 @@ async function handleGoogleLogin() {
         const userData = {
             firstName,
             lastName,
-            fullName: user.displayName || 'Chenari User',
+            fullName: user.displayName || 'MyMart User',
             email: user.email,
             photoURL: user.photoURL,
             role: 'user',

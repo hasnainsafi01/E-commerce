@@ -1,5 +1,5 @@
 /**
- * Chenari Admin Core Logic
+ * MyMart Admin Core Logic
  * Handles Dashboard stats, Product CRUD, Order management, and Activity logs.
  */
 
