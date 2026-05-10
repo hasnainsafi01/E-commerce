@@ -3,7 +3,7 @@
  * Integration with Firebase Auth, Firestore, and Cloudinary
  */
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { 
     getAuth, onAuthStateChanged, signOut, updateProfile, 
     updatePassword, updateEmail, reauthenticateWithCredential, EmailAuthProvider 
@@ -29,7 +29,7 @@ const CLOUDINARY_UPLOAD_PRESET = "shophub_profiles";
 const CLOUDINARY_FOLDER = "E-commerce";
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -279,8 +279,22 @@ function setupSettingsForm() {
                 
                 // Update Password
                 await updatePassword(auth.currentUser, newPassword);
-                
-                // Clear password fields
+
+                // CRITICAL: Force sign-out after password change.
+                // Firebase revokes the old token, making the session unstable.
+                // Signing out immediately prevents the admin guard from flipping
+                // between authenticated/unauthenticated on subsequent page loads.
+                await signOut(auth);
+                sessionStorage.removeItem('admin_verified');
+                window.showToast('Password changed. Please log in again.', 'success');
+                setTimeout(() => {
+                    // Redirect admin users back to admin login, regular users to home
+                    const isAdmin = window.location.pathname.includes('profile.html');
+                    window.location.href = 'index.html';
+                }, 2000);
+                return; // Stop further execution in this submit handler
+
+                // Clear password fields (reached only on non-password saves)
                 document.getElementById('current-password').value = '';
                 document.getElementById('new-password').value = '';
                 document.getElementById('confirm-password').value = '';

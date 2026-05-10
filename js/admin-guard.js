@@ -1,6 +1,18 @@
 /**
  * Admin Security Guard
- * Protects admin routes from unauthorized users.
+ * Protects all admin routes. Runs on every admin/* page BEFORE the dashboard loads.
+ *
+ * FIX SUMMARY (v3):
+ *  1. Uses getApps()/getApp() to avoid "duplicate-app" crash when admin.js
+ *     also calls initializeApp on the same page.
+ *  2. Unsubscribes from onAuthStateChanged after the FIRST callback — prevents
+ *     token-refresh re-fires from triggering a second redirect or re-check.
+ *  3. Redirects unauthenticated users to the dedicated admin login page,
+ *     NOT the store homepage.
+ *  4. 8-second safety timeout shows a human-readable error instead of
+ *     leaving the user stuck on the spinner forever.
+ *  5. Firestore errors show a message and allow the user to retry via refresh
+ *     (no silent redirect on network failure).
  */
 
 import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -16,88 +28,88 @@ const firebaseConfig = {
     appId: "1:261283936769:web:ce65b52a9dbc1df0f6de00"
 };
 
-// FIX: Reuse existing Firebase app instead of calling initializeApp() twice
-// (admin.js also calls initializeApp — second call causes "duplicate-app" crash)
+// Reuse existing Firebase instance — prevents "duplicate-app" crash
+// when admin.js (loaded after this script) also calls initializeApp.
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const auth = getAuth(app);
-const db = getFirestore(app);
+const db   = getFirestore(app);
 
-const loader = document.getElementById('admin-loader');
-const loaderMsg = loader ? loader.querySelector('p') : null;
+// ─── UI refs ──────────────────────────────────────────────────────────────────
+const loader    = document.getElementById('admin-loader');
+const loaderMsg = loader?.querySelector('p');
 
-// Safety net: if Firebase never resolves (offline / CDN blocked), 
-// stop spinning and show a user-friendly error after 8 seconds
+function showLoaderError(msg) {
+    if (loaderMsg) loaderMsg.textContent = msg;
+    // Stop the spinner visually
+    const spinner = loader?.querySelector('.loader-spinner');
+    if (spinner) spinner.style.animationPlayState = 'paused';
+}
+
+function hideLoader() {
+    document.body.classList.remove('admin-loading');
+    if (loader) {
+        loader.classList.add('hidden');
+        setTimeout(() => { loader.style.display = 'none'; }, 400);
+    }
+}
+
+// ─── Safety timeout ───────────────────────────────────────────────────────────
+// If Firebase CDN is blocked or the network is too slow, stop spinning after 8s.
 const safetyTimeout = setTimeout(() => {
     if (loader && !loader.classList.contains('hidden')) {
-        if (loaderMsg) loaderMsg.textContent = 'Verification timed out. Please refresh the page.';
-        console.error('Admin guard: auth state never resolved within 8s.');
+        showLoaderError('Verification timed out. Please refresh the page.');
+        console.error('Admin guard: onAuthStateChanged never resolved within 8 s');
     }
 }, 8000);
 
-// FIX: Track whether we've already processed a valid user
-// to avoid double-firing on token refreshes
-let authHandled = false;
-let nullRedirectTimer = null;
+// ─── Auth check ───────────────────────────────────────────────────────────────
+// KEY FIX: capture the unsubscribe function and call it after the first
+// meaningful callback.  This prevents token-refresh re-fires (which emit
+// a new User object) from running the Firestore check a second time.
+const unsubscribe = onAuthStateChanged(auth, async (user) => {
 
-onAuthStateChanged(auth, async (user) => {
-
-    // --- NO USER ---
+    // ── NO USER ──────────────────────────────────────────────────────────────
     if (!user) {
-        // Firebase briefly emits null on page refresh before restoring the session.
-        // We wait 3s (up from 1.5s) to give it time to recover on slow/hosted connections.
-        if (!nullRedirectTimer) {
-            nullRedirectTimer = setTimeout(() => {
-                if (!authHandled) {
-                    clearTimeout(safetyTimeout);
-                    sessionStorage.removeItem('admin_verified');
-                    window.location.replace('../index.html');
-                }
-            }, 3000);
-        }
+        // onAuthStateChanged fires exactly once during page init with either
+        // the persisted user or null.  A null here is definitive: not logged in.
+        unsubscribe(); // stop listening
+        clearTimeout(safetyTimeout);
+        sessionStorage.removeItem('admin_verified');
+        // Redirect to the dedicated admin login page (not the store homepage)
+        window.location.replace('./login.html');
         return;
     }
 
-    // --- USER EXISTS: cancel any pending redirect and safety timeout ---
-    if (nullRedirectTimer) clearTimeout(nullRedirectTimer);
-    if (authHandled) return; // Ignore repeated fires (token refresh etc.)
-    authHandled = true;
+    // ── USER EXISTS ───────────────────────────────────────────────────────────
+    unsubscribe(); // fire only once
     clearTimeout(safetyTimeout);
 
     try {
-        const userDocRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userDocRef);
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
 
         if (userDoc.exists() && userDoc.data().role === 'admin') {
-            // ✅ Verified admin — unlock the UI
+            // ✅ Valid admin — cache session, reveal UI, let admin.js start
             sessionStorage.setItem('admin_verified', user.uid);
-            console.log("Admin privileges verified.");
+            console.log('Admin privileges verified for', user.email);
 
-            // Dispatch event so admin.js can start loading dashboard data
             document.dispatchEvent(new CustomEvent('admin-verified', {
                 detail: { user: { uid: user.uid, ...userDoc.data() } }
             }));
 
-            document.body.classList.remove('admin-loading');
-
-            if (loader) {
-                loader.classList.add('hidden');
-                setTimeout(() => { loader.style.display = 'none'; }, 400);
-            }
+            hideLoader();
 
         } else {
-            // ❌ Logged in but not an admin
-            console.error("Access Denied: Account lacks administrative privileges.");
+            // ❌ Authenticated but not an admin
+            console.error('Access denied: not an admin account');
             sessionStorage.removeItem('admin_verified');
-            window.location.replace('../index.html');
+            window.location.replace('./login.html');
         }
 
     } catch (error) {
-        // Network / Firestore error — show message instead of crashing or redirecting
-        console.error("Security System Error:", error);
+        // Network / Firestore error — do NOT silently redirect;
+        // show a message so the user knows what happened and can retry.
+        console.error('Guard Firestore check failed:', error);
         sessionStorage.removeItem('admin_verified');
-        if (loaderMsg) loaderMsg.textContent = 'Verification failed. Please check your connection and refresh.';
-        // Reset so a manual refresh can try again
-        authHandled = false;
+        showLoaderError('Verification failed. Check your connection and refresh.');
     }
 });
-

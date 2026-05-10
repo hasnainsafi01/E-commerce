@@ -38,11 +38,16 @@ document.addEventListener('admin-verified', (e) => {
 
 function initDashboard() {
     const path = window.location.pathname;
-    if (path.includes('index.html')) loadOverview();
+    // Match both explicit index.html and bare /admin/ or /admin paths
+    // (GitHub Pages / Firebase Hosting serve index.html implicitly)
+    const isOverview = path.includes('index.html') ||
+                       path.endsWith('/admin') ||
+                       path.endsWith('/admin/');
+    if (isOverview)                         loadOverview();
     if (path.includes('add-product.html')) setupAddProduct();
-    if (path.includes('products.html')) loadManageProducts();
-    if (path.includes('orders.html')) loadOrders();
-    if (path.includes('history.html')) loadHistory();
+    if (path.includes('products.html'))    loadManageProducts();
+    if (path.includes('orders.html'))      loadOrders();
+    if (path.includes('history.html'))     loadHistory();
     injectToastContainer();
 }
 
