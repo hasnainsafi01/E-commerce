@@ -155,11 +155,11 @@ function renderProducts(grid, products) {
     grid.innerHTML = products.map(product => {
         // Safely escape product data for inline onclick
         const safeId = encodeURIComponent(product.id);
-        const safeProduct = JSON.stringify(product).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        const imageUrl = product.imageUrl || product.productImage || ''; // Support both names
         return `
         <div class="product-card" onclick="window.navigateToProduct('${safeId}')" style="cursor: pointer;">
             <div class="product-image-container">
-                <img src="${product.productImage || ''}" alt="${product.productName || 'Product'}" class="product-image" loading="lazy">
+                <img src="${imageUrl}" alt="${product.productName || 'Product'}" class="product-image" loading="lazy">
                 <button class="wishlist-btn" onclick="event.stopPropagation(); handleAddToWishlist('${product.id}')">
                     <i class="far fa-heart"></i>
                 </button>
@@ -202,8 +202,9 @@ async function loadProductDetails() {
         // 1. Update Gallery
         const gallery = document.querySelector('.product-gallery');
         if (gallery) {
+            const imageUrl = product.imageUrl || product.productImage || '';
             gallery.innerHTML = `
-                <img src="${product.productImage}" alt="${product.productName}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover;">
+                <img src="${imageUrl}" alt="${product.productName}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover;">
             `;
         }
         

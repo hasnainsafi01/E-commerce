@@ -155,13 +155,21 @@ function setupAddProduct() {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Supported formats: JPG, PNG, WEBP
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            window.showToast("Invalid format. Please select JPG, PNG, or WEBP.", "error");
+            fileInput.value = '';
+            return;
+        }
+
         // Preview
         const reader = new FileReader();
         reader.onload = (e) => { previewContainer.innerHTML = `<img src="${e.target.result}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;">`; };
         reader.readAsDataURL(file);
 
         // Upload
-        dropzone.querySelector('p').innerText = "Uploading...";
+        dropzone.querySelector('p').innerText = "Uploading to Cloudinary...";
         try {
             const formData = new FormData();
             formData.append('file', file);
@@ -194,7 +202,7 @@ function setupAddProduct() {
             stock: parseInt(document.getElementById('stock').value),
             description: document.getElementById('productDescription').value,
             colors: document.getElementById('productColors').value.split(',').map(c => c.trim()),
-            productImage: uploadedImageUrl,
+            imageUrl: uploadedImageUrl, // Renamed to imageUrl
             createdAt: Timestamp.now()
         };
 
@@ -231,7 +239,7 @@ async function loadManageProducts() {
         document.getElementById('products-empty').style.display = 'none';
         table.innerHTML = items.map(p => `
             <tr>
-                <td><img src="${p.productImage}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
+                <td><img src="${p.imageUrl || p.productImage}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
                 <td><strong>${p.productName}</strong></td>
                 <td><span class="badge" style="background:#f0f0f0; padding:4px 8px; border-radius:4px;">${p.category}</span></td>
                 <td>$${p.productPrice.toFixed(2)}</td>
