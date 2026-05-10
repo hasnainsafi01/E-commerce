@@ -41,6 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupSearch();
     setupNavbarScroll();
     setupNewsletter();
+    setupHeroSlider();
     injectAuthModal();
     injectLogoutModal();
     injectToastContainer();
@@ -747,13 +748,71 @@ function setupSearch() {
 }
 
 function setupNewsletter() {
-    const newsletterForm = document.querySelector('.newsletter-form');
-    if (newsletterForm) {
-        newsletterForm.addEventListener('submit', (e) => {
+    const form = document.querySelector('.newsletter-form');
+    if (form) {
+        form.addEventListener('submit', (e) => {
             e.preventDefault();
-            alert('Thank you for joining our community!');
-            newsletterForm.reset();
+            const email = form.querySelector('input').value;
+            alert(`Thank you for subscribing with ${email}!`);
+            form.reset();
         });
     }
 }
 
+/**
+ * Hero Slider Logic
+ */
+function setupHeroSlider() {
+    const slider = document.getElementById('hero-slider');
+    if (!slider) return;
+
+    const slides = slider.querySelectorAll('.hero-slide');
+    const dotsContainer = document.getElementById('hero-dots');
+    if (!slides.length || !dotsContainer) return;
+
+    let currentSlide = 0;
+    let slideInterval;
+
+    // Create dots
+    slides.forEach((_, index) => {
+        const dot = document.createElement('div');
+        dot.className = `hero-dot ${index === 0 ? 'active' : ''}`;
+        dot.addEventListener('click', () => goToSlide(index));
+        dotsContainer.appendChild(dot);
+    });
+
+    const dots = dotsContainer.querySelectorAll('.hero-dot');
+
+    window.goToSlide = (index) => {
+        slides[currentSlide].classList.remove('active');
+        dots[currentSlide].classList.remove('active');
+        
+        currentSlide = index;
+        
+        slides[currentSlide].classList.add('active');
+        dots[currentSlide].classList.add('active');
+        
+        resetInterval();
+    };
+
+    window.nextSlide = () => {
+        let next = (currentSlide + 1) % slides.length;
+        goToSlide(next);
+    };
+
+    window.prevSlide = () => {
+        let prev = (currentSlide - 1 + slides.length) % slides.length;
+        goToSlide(prev);
+    };
+
+    function startInterval() {
+        slideInterval = setInterval(window.nextSlide, 4500); // 4.5 seconds
+    }
+
+    function resetInterval() {
+        clearInterval(slideInterval);
+        startInterval();
+    }
+
+    startInterval();
+}
