@@ -141,84 +141,90 @@ async function loadOverview() {
     });
 }
 
-// ─── Add Product Logic ────────────────────────────────────────────────────────
 function setupAddProduct() {
     const dropzone = document.getElementById('image-dropzone');
     const fileInput = document.getElementById('productImage');
-    const previewContainer = document.getElementById('image-preview-container');
     const form = document.getElementById('product-form');
-    let uploadedImageUrl = null;
+    let selectedFile = null;
 
-    if (!dropzone || !fileInput) return;
+    if (!dropzone || !fileInput || !form) return;
 
-    // Native label handles the click now. 
-    // We only need the change listener for the upload logic.
-
-    fileInput.addEventListener('change', async (e) => {
-        const file = e.target.files[0];
+    const handleFileSelect = (file) => {
         if (!file) return;
 
-        // Supported formats: JPG, PNG, WEBP
         const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
         if (!allowedTypes.includes(file.type)) {
             window.showToast("Invalid format. Please select JPG, PNG, or WEBP.", "error");
-            fileInput.value = '';
             return;
         }
 
-        // Preview
+        selectedFile = file;
+
+        // Show Preview inside Dropzone
         const reader = new FileReader();
-        reader.onload = (e) => { previewContainer.innerHTML = `<img src="${e.target.result}" style="width: 150px; height: 150px; object-fit: cover; border-radius: 8px;">`; };
+        reader.onload = (re) => {
+            dropzone.innerHTML = `
+                <img src="${re.target.result}" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
+                <p style="margin-top: 10px; font-size: 0.8rem; color: var(--admin-primary);">Image Selected - Click to change</p>
+                <input type="file" id="productImage" accept="image/*" style="display: none;">
+            `;
+            // Re-setup listener because we replaced innerHTML
+            dropzone.querySelector('input').addEventListener('change', (ev) => {
+                handleFileSelect(ev.target.files[0]);
+            });
+        };
         reader.readAsDataURL(file);
-
-        // Upload
-        dropzone.querySelector('p').innerText = "Uploading to Cloudinary...";
-        try {
-            const formData = new FormData();
-            formData.append('file', file);
-            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
-            formData.append('folder', 'E-commerce/products');
-
-            const res = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
-            const data = await res.json();
-            uploadedImageUrl = data.secure_url;
-            dropzone.querySelector('p').innerText = "Upload Complete!";
-            window.showToast("Image uploaded successfully!");
-        } catch (error) {
-            window.showToast("Upload failed. Check Cloudinary settings.", "error");
-            dropzone.querySelector('p').innerText = "Retry Upload";
-        }
     });
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        if (!uploadedImageUrl) return window.showToast("Please upload an image.", "error");
+        if (!selectedFile) return window.showToast("Please select an image.", "error");
 
         const btn = document.getElementById('save-product-btn');
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-        const product = {
-            productName: document.getElementById('productName').value,
-            productPrice: parseFloat(document.getElementById('productPrice').value),
-            category: document.getElementById('category').value,
-            stock: parseInt(document.getElementById('stock').value),
-            description: document.getElementById('productDescription').value,
-            colors: document.getElementById('productColors').value.split(',').map(c => c.trim()),
-            imageUrl: uploadedImageUrl, // Renamed to imageUrl
-            createdAt: Timestamp.now()
-        };
-
         try {
+            // 1. Upload to Cloudinary
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+            formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET);
+            formData.append('folder', 'E-commerce/products');
+
+            const cloudRes = await fetch(CLOUDINARY_URL, { method: 'POST', body: formData });
+            const cloudData = await cloudRes.json();
+            
+            if (!cloudData.secure_url) throw new Error("Upload failed");
+            
+            const imageUrl = cloudData.secure_url;
+
+            // 2. Add to Firestore
+            const product = {
+                productName: document.getElementById('productName').value,
+                productPrice: parseFloat(document.getElementById('productPrice').value),
+                category: document.getElementById('category').value,
+                stock: parseInt(document.getElementById('stock').value),
+                description: document.getElementById('productDescription').value,
+                colors: document.getElementById('productColors').value.split(',').map(c => c.trim()),
+                imageUrl: imageUrl, // Use the fresh URL
+                createdAt: Timestamp.now()
+            };
+
             await addDoc(collection(db, "products"), product);
             await logAction('added product', product.productName);
             window.showToast("Product saved successfully!");
+            
+            // Reset Form and Preview
             form.reset();
-            previewContainer.innerHTML = '';
-            uploadedImageUrl = null;
-            dropzone.querySelector('p').innerText = "Click or drag image to upload";
+            selectedFile = null;
+            dropzone.innerHTML = `
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click or drag image to upload to Cloudinary</p>
+                <input type="file" id="productImage" accept="image/*" style="display: none;">
+            `;
         } catch (error) {
-            window.showToast("Error: " + error.message, "error");
+            console.error(error);
+            window.showToast("Failed to save product.", "error");
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Save Product';
