@@ -931,11 +931,80 @@ window.removeCartItem = async (index) => {
     await updateFirestoreCart();
 };
 
-window.clearCart = async () => {
-    if (confirm('Clear all items from cart?')) {
-        cartState = [];
-        await updateFirestoreCart();
+function injectClearCartModal() {
+    if (document.getElementById('clearCartModal')) return;
+    const modalHTML = `
+        <div class="modal-overlay" id="clearCartModal">
+            <div class="modal-content logout-modal" id="clearCartModalContent">
+                <!-- Content dynamically injected here -->
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+
+    // Close when clicking outside
+    document.getElementById('clearCartModal').addEventListener('click', (e) => {
+        if (e.target.id === 'clearCartModal') {
+            document.getElementById('clearCartModal').style.display = 'none';
+            document.body.style.overflow = '';
+        }
+    });
+}
+
+window.clearCart = () => {
+    injectClearCartModal();
+    const modal = document.getElementById('clearCartModal');
+    const content = document.getElementById('clearCartModalContent');
+    
+    if (!cartState || cartState.length === 0) {
+        // Empty Cart Popup
+        content.innerHTML = `
+            <div class="logout-icon" style="background: rgba(0, 82, 204, 0.1); color: var(--primary); animation: none; box-shadow: none;">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="auth-header">
+                <h2>Cart Empty</h2>
+                <p>Your cart is already empty.</p>
+            </div>
+            <div style="margin-top: 2rem;">
+                <button class="btn btn-primary" style="width: 100%; padding: 0.8rem; font-size: 1rem;" onclick="document.getElementById('clearCartModal').style.display='none'; document.body.style.overflow=''">OK</button>
+            </div>
+        `;
+    } else {
+        // Confirmation Popup
+        content.innerHTML = `
+            <div class="logout-icon" style="background: rgba(255, 77, 79, 0.1); color: #ff4d4f;">
+                <i class="fas fa-trash-alt"></i>
+            </div>
+            <div class="auth-header">
+                <h2>Clear Cart</h2>
+                <p>Are you sure you want to clear your cart? This action cannot be undone.</p>
+            </div>
+            <div class="logout-actions">
+                <button class="btn btn-outline" onclick="document.getElementById('clearCartModal').style.display='none'; document.body.style.overflow=''">Cancel</button>
+                <button class="btn btn-primary" id="confirm-clear-cart" style="background: #ff4d4f; border-color: #ff4d4f;">Clear Cart</button>
+            </div>
+        `;
+
+        document.getElementById('confirm-clear-cart').addEventListener('click', async () => {
+            const confirmBtn = document.getElementById('confirm-clear-cart');
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Clearing...';
+            confirmBtn.disabled = true;
+            
+            cartState = [];
+            await updateFirestoreCart();
+            
+            document.getElementById('clearCartModal').style.display = 'none';
+            document.body.style.overflow = '';
+            
+            if (window.showToast) {
+                window.showToast('Cart cleared successfully.');
+            }
+        });
     }
+
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
 };
 
 window.handleCheckout = async () => {
