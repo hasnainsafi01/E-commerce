@@ -1034,7 +1034,6 @@ footer {
 @media (max-width: 768px) {
     .navbar .container { flex-wrap: wrap; }
     .search-container { order: 3; max-width: 100%; }
-    .hero-content { padding-left: 0; margin: 0 auto; text-align: center; }
     .hero-content h1 { font-size: 1.8rem; }
 }
 /* Skeleton Loading Styles */
@@ -1268,32 +1267,55 @@ footer {
     /* Hero Section */
     .hero {
         height: 380px;
-        text-align: center;
     }
     
+    .hero-slide::after {
+        /* Slightly stronger overlay on mobile for text readability */
+        background: linear-gradient(135deg, rgba(9, 30, 66, 0.82) 0%, rgba(0, 82, 204, 0.65) 100%);
+    }
+
     .hero-content {
-        max-width: 100%;
+        max-width: 90%;
         margin: 0 auto;
-        align-items: center;
-        background: rgba(255, 255, 255, 0.75);
         padding: 1.5rem;
-        border-radius: var(--radius-lg);
-        backdrop-filter: blur(8px);
-        z-index: 2;
+        text-align: center;
+        /* No white background — text readable via the slide overlay */
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        border-radius: 0;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
     }
     
     .hero-content h1 {
-        font-size: 2.2rem;
-        margin-bottom: 0.5rem;
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
     }
     
     .hero-content p {
-        font-size: 1rem;
-        margin-bottom: 1.5rem;
+        font-size: 0.95rem;
+        margin-bottom: 1.25rem;
+        text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
     }
-    
 
-    
+    /* Ensure image fills slide on mobile - no clipping or hiding */
+    .hero-slide {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .hero-image {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        object-fit: cover;
+        z-index: 0;
+        display: block !important;
+    }
+
     .hero-arrow {
         display: none; /* Hide arrows on mobile to save space */
     }
