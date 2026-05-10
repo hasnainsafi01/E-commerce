@@ -103,7 +103,7 @@ async function loadProducts() {
     for (const grid of grids) {
         const gridId = grid.id || '';
 
-        // Skip special grids handled elsewhere (related-products, saved-items, etc.)
+        // Skip grids handled by other functions
         if (!gridId || gridId === 'related-products' || gridId === 'saved-items-grid') continue;
 
         const limit = grid.hasAttribute('data-count')
@@ -113,23 +113,25 @@ async function loadProducts() {
         try {
             let products = [];
 
-            if (GRID_CATEGORY_MAP[gridId] !== undefined && GRID_CATEGORY_MAP[gridId] !== null) {
-                // Specific category grid
+            // Check if this grid ID is in our map
+            if (gridId in GRID_CATEGORY_MAP) {
                 const category = GRID_CATEGORY_MAP[gridId];
-                const q = query(collection(db, 'products'), where('category', '==', category));
-                const snapshot = await getDocs(q);
-                products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
-            } else if (gridId === 'trending-grid' || gridId === 'featured-categories' || gridId === 'new-arrivals') {
-                // Homepage generic grids — pull a cross-category mix
-                const snapshot = await getDocs(collection(db, 'products'));
-                let all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-                // Shuffle for variety
-                all = all.sort(() => Math.random() - 0.5);
-                products = all.slice(0, limit);
+                if (category !== null) {
+                    // Specific category — query by category
+                    const q = query(collection(db, 'products'), where('category', '==', category));
+                    const snapshot = await getDocs(q);
+                    products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                } else {
+                    // Generic homepage grid — pull a shuffled cross-category mix
+                    const snapshot = await getDocs(collection(db, 'products'));
+                    let all = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+                    all = all.sort(() => Math.random() - 0.5);
+                    products = all.slice(0, limit);
+                }
 
             } else {
-                // Fallback: try stripping '-grid' suffix
+                // Fallback: derive category by stripping '-grid' suffix
                 const category = gridId.replace('-grid', '');
                 if (!category) continue;
                 const q = query(collection(db, 'products'), where('category', '==', category));
@@ -137,7 +139,7 @@ async function loadProducts() {
                 products = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
             }
 
-            if (products.length === 0) continue; // keep skeleton
+            if (products.length === 0) continue; // keep skeleton placeholders
 
             renderProducts(grid, products.slice(0, limit));
 
@@ -147,28 +149,44 @@ async function loadProducts() {
     }
 }
 
+// Resolve the correct path to product-details.html from ANY page depth
+function getProductDetailsUrl(productId) {
+    // Check if we're inside a subdirectory (e.g., admin/)
+    const isSubdir = window.location.pathname.includes('/admin/');
+    const prefix = isSubdir ? '../' : '';
+    return `${prefix}product-details.html?id=${encodeURIComponent(productId)}`;
+}
+
+// Make navigateToProduct globally accessible for inline onclick
+window.navigateToProduct = function(productId) {
+    window.location.href = getProductDetailsUrl(productId);
+};
 
 function renderProducts(grid, products) {
-    grid.innerHTML = products.map(product => `
-        <div class="product-card" onclick="window.location.href='product-details.html?id=${product.id}'" style="cursor: pointer;">
+    grid.innerHTML = products.map(product => {
+        // Safely escape product data for inline onclick
+        const safeId = encodeURIComponent(product.id);
+        const safeProduct = JSON.stringify(product).replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        return `
+        <div class="product-card" onclick="window.navigateToProduct('${safeId}')" style="cursor: pointer;">
             <div class="product-image-container">
-                <img src="${product.productImage}" alt="${product.productName}" class="product-image">
+                <img src="${product.productImage || ''}" alt="${product.productName || 'Product'}" class="product-image" loading="lazy">
                 <button class="wishlist-btn" onclick="event.stopPropagation(); handleAddToWishlist('${product.id}')">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
             <div class="product-info">
-                <span class="product-category">${product.category}</span>
-                <h3 class="product-title">${product.productName}</h3>
+                <span class="product-category">${product.category || ''}</span>
+                <h3 class="product-title">${product.productName || 'Unnamed Product'}</h3>
                 <div class="product-footer">
-                    <span class="product-price">$${parseFloat(product.productPrice).toFixed(2)}</span>
+                    <span class="product-price">$${parseFloat(product.productPrice || 0).toFixed(2)}</span>
                     <button class="add-to-cart-btn" onclick='event.stopPropagation(); handleAddToCart(${JSON.stringify(product).replace(/'/g, "&#39;")})'>
                         <i class="fas fa-shopping-bag"></i>
                     </button>
                 </div>
             </div>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 /**
@@ -176,7 +194,7 @@ function renderProducts(grid, products) {
  */
 async function loadProductDetails() {
     const params = new URLSearchParams(window.location.search);
-    const id = params.get('id');
+    const id = decodeURIComponent(params.get('id') || '');
     if (!id) {
         window.location.href = 'index.html';
         return;
