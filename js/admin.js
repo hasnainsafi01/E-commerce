@@ -147,6 +147,10 @@ function setupAddProduct() {
     const form = document.getElementById('product-form');
     let selectedFile = null;
 
+    const placeholder = document.getElementById('upload-placeholder');
+    const preview = document.getElementById('upload-preview');
+    const previewImg = document.getElementById('preview-img');
+
     if (!dropzone || !fileInput || !form) return;
 
     const handleFileSelect = (file) => {
@@ -160,23 +164,17 @@ function setupAddProduct() {
 
         selectedFile = file;
 
-        // Show Preview inside Dropzone
-        const reader = new FileReader();
-        reader.onload = (re) => {
-            dropzone.innerHTML = `
-                <img src="${re.target.result}" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
-                <p style="margin-top: 10px; font-size: 0.8rem; color: var(--admin-primary);">Image Selected - Click to change</p>
-                <input type="file" id="productImage" accept="image/*" style="display: none;">
-            `;
-        };
-        reader.readAsDataURL(file);
+        // Show Preview
+        const previewUrl = URL.createObjectURL(file);
+        previewImg.src = previewUrl;
+        placeholder.style.display = 'none';
+        preview.style.display = 'block';
+        
+        window.showToast("Image selected successfully!");
     };
 
-    // Use delegation so it works even after innerHTML replacement
-    dropzone.addEventListener('change', (e) => {
-        if (e.target.id === 'productImage') {
-            handleFileSelect(e.target.files[0]);
-        }
+    fileInput.addEventListener('change', (e) => {
+        handleFileSelect(e.target.files[0]);
     });
 
     form.addEventListener('submit', async (e) => {
@@ -220,11 +218,9 @@ function setupAddProduct() {
             // Reset Form and Preview
             form.reset();
             selectedFile = null;
-            dropzone.innerHTML = `
-                <i class="fas fa-cloud-upload-alt"></i>
-                <p>Click or drag image to upload to Cloudinary</p>
-                <input type="file" id="productImage" accept="image/*" style="display: none;">
-            `;
+            if (placeholder) placeholder.style.display = 'block';
+            if (preview) preview.style.display = 'none';
+            if (previewImg) previewImg.src = '';
         } catch (error) {
             console.error(error);
             window.showToast("Failed to save product.", "error");

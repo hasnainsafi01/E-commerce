@@ -110,8 +110,14 @@
 
                     <div class="form-group full-width">
                         <label class="upload-dropzone" id="image-dropzone" for="productImage">
-                            <i class="fas fa-cloud-upload-alt"></i>
-                            <p>Click or drag image to upload to Cloudinary</p>
+                            <div id="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click or drag image to upload to Cloudinary</p>
+                            </div>
+                            <div id="upload-preview" style="display: none; pointer-events: none;">
+                                <img src="" id="preview-img" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
+                                <p style="margin-top: 10px; font-size: 0.8rem; color: var(--admin-primary); font-weight: 500;">Image Selected - Click to change</p>
+                            </div>
                             <input type="file" id="productImage" accept="image/*" style="display: none;">
                         </label>
                         <div id="image-preview-container" class="preview-grid">
