@@ -150,24 +150,24 @@ window.navigateToProduct = function(productId) {
 };
 
 function renderProducts(grid, products) {
-    grid.innerHTML = products.map(product => {
+    grid.innerHTML = products.map(p => {
         // Safely escape product data for inline onclick
-        const safeId = encodeURIComponent(product.id);
-        const imageUrl = product.imageUrl || product.productImage || ''; // Support both names
+        const safeId = encodeURIComponent(p.id);
+        const imageUrl = p.imageUrl || p.productImage || ''; // Support both names
         return `
         <div class="product-card" onclick="window.navigateToProduct('${safeId}')" style="cursor: pointer;">
             <div class="product-image-container">
-                <img src="${imageUrl}" alt="${product.productName || 'Product'}" class="product-image" loading="lazy">
-                <button class="wishlist-btn" onclick="event.stopPropagation(); handleAddToWishlist('${product.id}')">
+                <img src="${imageUrl}" alt="${p.name || p.productName || 'Product'}" class="product-image" loading="lazy">
+                <button class="wishlist-btn" onclick="event.stopPropagation(); handleAddToWishlist('${p.id}')">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
             <div class="product-info">
-                <span class="product-category">${product.category || ''}</span>
-                <h3 class="product-title">${product.productName || 'Unnamed Product'}</h3>
+                <span class="product-category">${p.category || ''}</span>
+                <h3 class="product-title">${p.name || p.productName || 'Unnamed Product'}</h3>
                 <div class="product-footer">
-                    <span class="product-price">$${parseFloat(product.productPrice || 0).toFixed(2)}</span>
-                    <button class="add-to-cart-btn" onclick='event.stopPropagation(); handleAddToCart(${JSON.stringify(product).replace(/'/g, "&#39;")})'>
+                    <span class="product-price">$${parseFloat(p.price || p.productPrice || 0).toFixed(2)}</span>
+                    <button class="add-to-cart-btn" onclick='event.stopPropagation(); handleAddToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
                         <i class="fas fa-shopping-bag"></i>
                     </button>
                 </div>
@@ -195,14 +195,14 @@ async function loadProductDetails() {
             return;
         }
 
-        const product = { id: productDoc.id, ...productDoc.data() };
+        const p = { id: productDoc.id, ...productDoc.data() };
 
         // 1. Update Gallery
         const gallery = document.querySelector('.product-gallery');
         if (gallery) {
-            const imageUrl = product.imageUrl || product.productImage || '';
+            const imageUrl = p.imageUrl || p.productImage || '';
             gallery.innerHTML = `
-                <img src="${imageUrl}" alt="${product.productName}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover;">
+                <img src="${imageUrl}" alt="${p.name || p.productName}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover;">
             `;
         }
         
@@ -210,7 +210,7 @@ async function loadProductDetails() {
         const infoPanel = document.querySelector('.product-info-panel');
         if (infoPanel) {
             const titleEl = document.createElement('h1');
-            titleEl.textContent = product.productName;
+            titleEl.textContent = p.name || p.productName;
             titleEl.style.fontSize = '2.2rem';
             titleEl.style.marginBottom = '0.5rem';
             
@@ -221,8 +221,8 @@ async function loadProductDetails() {
                 </div>
             `;
             
-            const priceHtml = `<div class="product-price" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem;">$${parseFloat(product.productPrice).toFixed(2)}</div>`;
-            const descHtml = `<p style="margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">${product.description || 'Premium quality product designed for everyday excellence.'}</p>`;
+            const priceHtml = `<div class="product-price" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem;">$${parseFloat(p.price || p.productPrice || 0).toFixed(2)}</div>`;
+            const descHtml = `<p style="margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">${p.description || 'Premium quality product designed for everyday excellence.'}</p>`;
 
             let colorsHtml = '';
             if (product.colors && product.colors.length > 0) {

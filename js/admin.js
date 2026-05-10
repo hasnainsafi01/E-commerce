@@ -203,18 +203,18 @@ function setupAddProduct() {
 
             // 2. Add to Firestore
             const product = {
-                productName: document.getElementById('productName').value,
-                productPrice: parseFloat(document.getElementById('productPrice').value),
+                name: document.getElementById('productName').value,
+                price: parseFloat(document.getElementById('productPrice').value),
                 category: document.getElementById('category').value,
                 stock: parseInt(document.getElementById('stock').value),
                 description: document.getElementById('productDescription').value,
                 colors: document.getElementById('productColors').value.split(',').map(c => c.trim()),
-                imageUrl: imageUrl, // Use the fresh URL
+                imageUrl: imageUrl, 
                 createdAt: Timestamp.now()
             };
 
             await addDoc(collection(db, "products"), product);
-            await logAction('added product', product.productName);
+            await logAction('added product', product.name);
             window.showToast("Product saved successfully!");
             
             // Reset Form and Preview
@@ -252,13 +252,13 @@ async function loadManageProducts() {
         table.innerHTML = items.map(p => `
             <tr>
                 <td><img src="${p.imageUrl || p.productImage}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
-                <td><strong>${p.productName}</strong></td>
+                <td><strong>${p.name || p.productName}</strong></td>
                 <td><span class="badge" style="background:#f0f0f0; padding:4px 8px; border-radius:4px;">${p.category}</span></td>
-                <td>$${p.productPrice.toFixed(2)}</td>
+                <td>$${(p.price || p.productPrice || 0).toFixed(2)}</td>
                 <td>${p.stock}</td>
                 <td>
                     <button class="btn btn-outline btn-sm" onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i></button>
-                    <button class="btn btn-outline btn-sm" style="color: #ff5630;" onclick="deleteProduct('${p.id}', '${p.productName.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                    <button class="btn btn-outline btn-sm" style="color: #ff5630;" onclick="deleteProduct('${p.id}', '${(p.name || p.productName || 'product').replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
                 </td>
             </tr>
         `).join('');
