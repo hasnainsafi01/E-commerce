@@ -11,7 +11,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, 
-    query, where, getDocs, onSnapshot 
+    query, where, getDocs, onSnapshot, orderBy, limit 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase Configuration
@@ -225,12 +225,12 @@ async function loadProductDetails() {
             const descHtml = `<p style="margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">${p.description || 'Premium quality product designed for everyday excellence.'}</p>`;
 
             let colorsHtml = '';
-            if (product.colors && product.colors.length > 0) {
+            if (p.colors && p.colors.length > 0) {
                 colorsHtml = `
                     <div class="selector-section" style="margin-bottom: 1.5rem;">
                         <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Color</span>
                         <div class="options-grid" id="color-options" style="display: flex; gap: 0.8rem;">
-                            ${product.colors.map((c, i) => `
+                            ${p.colors.map((c, i) => `
                                 <div class="color-swatch ${i === 0 ? 'active' : ''}" style="width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid ${i === 0 ? 'var(--primary)' : 'transparent'}; background: ${c.toLowerCase() === 'white' ? '#fff; border: 1px solid #ddd' : c}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" data-color="${c}" title="${c}"></div>
                             `).join('')}
                         </div>
@@ -267,7 +267,7 @@ async function loadProductDetails() {
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
                     <button class="btn btn-outline btn-large" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Buy Now</button>
-                    <button class="btn" onclick="handleAddToWishlist('${product.id}')" style="background: #f4f5f7; border-radius: var(--radius-md); padding: 1.2rem; width: 60px;">
+                    <button class="btn" onclick="handleAddToWishlist('${p.id}')" style="background: #f4f5f7; border-radius: var(--radius-md); padding: 1.2rem; width: 60px;">
                         <i class="far fa-heart" style="font-size: 1.4rem;"></i>
                     </button>
                 </div>
@@ -298,7 +298,7 @@ async function loadProductDetails() {
 
             // Color Selection Logic
             const swatches = infoPanel.querySelectorAll('.color-swatch');
-            let selectedColor = product.colors && product.colors.length > 0 ? product.colors[0] : null;
+            let selectedColor = p.colors && p.colors.length > 0 ? p.colors[0] : null;
             swatches.forEach(swatch => {
                 swatch.addEventListener('click', () => {
                     swatches.forEach(s => { s.classList.remove('active'); s.style.borderColor = 'transparent'; });
@@ -327,7 +327,7 @@ async function loadProductDetails() {
             addToCartBtn.addEventListener('click', () => {
                 const qty = parseInt(document.getElementById('product-qty').value);
                 const cartItem = {
-                    ...product,
+                    ...p,
                     selectedColor,
                     selectedVariant
                 };
@@ -338,11 +338,11 @@ async function loadProductDetails() {
         }
 
         // 3. Fetch Related Products
-        const q = query(collection(db, "products"), where("category", "==", product.category));
+        const q = query(collection(db, "products"), where("category", "==", p.category));
         const relSnapshot = await getDocs(q);
         let relatedProducts = [];
         relSnapshot.forEach(doc => {
-            if (doc.id !== product.id) {
+            if (doc.id !== p.id) {
                 relatedProducts.push({ id: doc.id, ...doc.data() });
             }
         });
@@ -848,9 +848,9 @@ window.handleAddToWishlist = async (productId) => {
         await setDoc(doc(db, "wishlist", `${currentUser.uid}_${productId}`), {
             userId: currentUser.uid,
             productId: productId,
-            name: product.productName,
-            price: product.productPrice,
-            image: product.productImage,
+            name: product.name || product.productName || 'Product',
+            price: product.price || product.productPrice || 0,
+            image: product.imageUrl || product.productImage || '',
             addedAt: new Date()
         });
         alert('Item added to wishlist!');
@@ -887,13 +887,17 @@ function renderCart() {
 
     let subtotal = 0;
     list.innerHTML = cartState.map((item, index) => {
-        subtotal += item.productPrice * item.qty;
+        const itemPrice = item.price || item.productPrice || 0;
+        const itemName = item.name || item.productName || 'Product';
+        const itemImage = item.imageUrl || item.productImage || '';
+        const itemCategory = item.category || '';
+        subtotal += itemPrice * item.qty;
         return `
             <div class="cart-item">
-                <img src="${item.productImage}" alt="${item.productName}" class="cart-item-img">
+                <img src="${itemImage}" alt="${itemName}" class="cart-item-img">
                 <div class="cart-item-details">
-                    <h3>${item.productName}</h3>
-                    <p class="cart-item-category">${item.category}</p>
+                    <h3>${itemName}</h3>
+                    <p class="cart-item-category">${itemCategory}</p>
                     <div class="cart-item-actions">
                         <div class="qty-control">
                             <button onclick="updateCartQty(${index}, -1)">-</button>
@@ -905,7 +909,7 @@ function renderCart() {
                         </button>
                     </div>
                 </div>
-                <div class="cart-item-price">$${(item.productPrice * item.qty).toFixed(2)}</div>
+                <div class="cart-item-price">$${(itemPrice * item.qty).toFixed(2)}</div>
             </div>
         `;
     }).join('');

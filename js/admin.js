@@ -153,6 +153,8 @@ function setupAddProduct() {
 
     if (!dropzone || !fileInput || !form) return;
 
+    let currentPreviewUrl = null;
+
     const handleFileSelect = (file) => {
         if (!file) return;
 
@@ -164,9 +166,14 @@ function setupAddProduct() {
 
         selectedFile = file;
 
+        // Revoke previous blob URL to prevent memory leak
+        if (currentPreviewUrl) {
+            URL.revokeObjectURL(currentPreviewUrl);
+        }
+
         // Show Preview
-        const previewUrl = URL.createObjectURL(file);
-        previewImg.src = previewUrl;
+        currentPreviewUrl = URL.createObjectURL(file);
+        previewImg.src = currentPreviewUrl;
         placeholder.style.display = 'none';
         preview.style.display = 'block';
         
@@ -206,7 +213,7 @@ function setupAddProduct() {
                 category: document.getElementById('category').value,
                 stock: parseInt(document.getElementById('stock').value),
                 description: document.getElementById('productDescription').value,
-                colors: document.getElementById('productColors').value.split(',').map(c => c.trim()),
+                colors: document.getElementById('productColors').value.split(',').map(c => c.trim()).filter(c => c),
                 imageUrl: imageUrl, 
                 createdAt: Timestamp.now()
             };
@@ -218,6 +225,10 @@ function setupAddProduct() {
             // Reset Form and Preview
             form.reset();
             selectedFile = null;
+            if (currentPreviewUrl) {
+                URL.revokeObjectURL(currentPreviewUrl);
+                currentPreviewUrl = null;
+            }
             if (placeholder) placeholder.style.display = 'block';
             if (preview) preview.style.display = 'none';
             if (previewImg) previewImg.src = '';
@@ -270,7 +281,7 @@ async function loadManageProducts() {
         if (filter.value !== 'all') filtered = filtered.filter(p => p.category === filter.value);
         if (search.value) {
             const s = search.value.toLowerCase();
-            filtered = filtered.filter(p => p.productName.toLowerCase().includes(s) || p.category.toLowerCase().includes(s));
+            filtered = filtered.filter(p => (p.name || p.productName || '').toLowerCase().includes(s) || (p.category || '').toLowerCase().includes(s));
         }
         render(filtered);
     };
