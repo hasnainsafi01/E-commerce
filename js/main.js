@@ -399,38 +399,44 @@ async function updateNavbarUI(user) {
     if (!authButtons) return;
 
     if (user) {
-        // User is logged in
+        // Check if admin
         const userDoc = await getDoc(doc(db, "users", user.uid));
         const isAdmin = userDoc.exists() && userDoc.data().role === 'admin';
         
         authButtons.innerHTML = `
             ${isAdmin ? '<a href="admin/index.html" class="btn btn-outline" style="border-color: var(--primary); color: var(--primary);"><i class="fas fa-user-shield"></i> Admin</a>' : ''}
-            <a href="profile.html" class="btn btn-outline" id="nav-profile-btn"><i class="fas fa-user"></i> Profile</a>
-            <button class="btn btn-primary btn-sm" id="logout-btn">Logout</button>
+            <button class="btn btn-outline" id="logout-btn">Logout</button>
         `;
         document.getElementById('logout-btn').addEventListener('click', (e) => {
             e.preventDefault();
             window.showLogoutModal();
         });
     } else {
-        // User is logged out
         authButtons.innerHTML = `
             <button class="btn btn-outline" id="login-trigger">Login</button>
             <button class="btn btn-primary" id="signup-trigger">Sign Up</button>
         `;
-        document.getElementById('login-trigger').addEventListener('click', () => window.showAuthModal());
-        document.getElementById('signup-trigger').addEventListener('click', () => window.showAuthModal(true));
+        document.getElementById('login-trigger').addEventListener('click', () => showAuthModal());
+        document.getElementById('signup-trigger').addEventListener('click', () => showAuthModal(true));
     }
 
-    // Protection for other navigation items (like Cart or footer links)
-    document.querySelectorAll('[data-auth-required]').forEach(el => {
-        el.addEventListener('click', (e) => {
-            if (!currentUser) {
+    // Global protection for Profile and Cart links (Original Restoration)
+    document.querySelectorAll('.nav-item').forEach(item => {
+        const text = item.innerText.toLowerCase();
+        if (text.includes('profile') || text.includes('cart')) {
+            const newItem = item.cloneNode(true);
+            item.parentNode.replaceChild(newItem, item);
+            
+            newItem.addEventListener('click', (e) => {
                 e.preventDefault();
-                window.showAuthModal();
-                window.showToast("Please login first to access this feature.", "info");
-            }
-        });
+                if (!currentUser) {
+                    showAuthModal();
+                } else {
+                    if (text.includes('profile')) window.location.href = 'profile.html';
+                    if (text.includes('cart')) window.location.href = 'cart.html';
+                }
+            });
+        }
     });
 }
 
@@ -649,8 +655,6 @@ window.showAuthModal = (signup = false) => {
     const switchLink = document.getElementById('switch-auth-mode');
     const errorMsg = document.getElementById('auth-error');
 
-    if (!modal) return;
-
     errorMsg.innerText = '';
     if (isSignUpMode) {
         title.innerText = 'Create Account';
@@ -669,21 +673,14 @@ window.showAuthModal = (signup = false) => {
         switchText.innerText = 'Don\'t have an account?';
         switchLink.innerText = 'Sign Up';
     }
-    
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
 }
 
 function hideAuthModal() {
     const modal = document.getElementById('authModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.classList.remove('modal-open');
-        
-        // Reset form error on close
-        const errorMsg = document.getElementById('auth-error');
-        if (errorMsg) errorMsg.innerText = '';
-    }
+    modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
 }
 
 function toggleAuthMode(e) {
