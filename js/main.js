@@ -208,96 +208,176 @@ async function loadProductDetails() {
 
         const p = { id: productDoc.id, ...productDoc.data() };
 
-        // 1. Update Gallery
+        // 1. Update Gallery (Supports multiple images)
         const gallery = document.querySelector('.product-gallery');
         if (gallery) {
-            const imageUrl = p.imageUrl || p.productImage || '';
+            const images = p.images && p.images.length > 0 ? p.images : [p.imageUrl || p.productImage || ''];
             gallery.innerHTML = `
-                <img src="${imageUrl}" alt="${p.name || p.productName}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover;">
+                <div class="main-image-container">
+                    <img src="${images[0]}" id="main-product-img" alt="${p.productName || p.name}" style="width: 100%; border-radius: var(--radius-lg); object-fit: cover; transition: opacity 0.3s ease;">
+                </div>
+                <div class="thumbnail-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem; margin-top: 1rem;">
+                    ${images.map((img, i) => `
+                        <img src="${img}" class="thumb ${i === 0 ? 'active' : ''}" style="width: 100%; aspect-ratio: 1; border-radius: var(--radius-md); cursor: pointer; border: 2px solid ${i === 0 ? 'var(--primary)' : 'transparent'}; object-fit: cover;" onclick="updateMainImage('${img}', this)">
+                    `).join('')}
+                </div>
             `;
+            window.updateMainImage = (src, thumb) => {
+                const main = document.getElementById('main-product-img');
+                main.style.opacity = '0';
+                setTimeout(() => {
+                    main.src = src;
+                    main.style.opacity = '1';
+                }, 200);
+                document.querySelectorAll('.thumb').forEach(t => t.style.borderColor = 'transparent');
+                thumb.style.borderColor = 'var(--primary)';
+            };
         }
         
         // 2. Update Info Panel
         const infoPanel = document.querySelector('.product-info-panel');
         if (infoPanel) {
             const titleEl = document.createElement('h1');
-            titleEl.textContent = p.name || p.productName;
-            titleEl.style.fontSize = '2.2rem';
+            titleEl.className = 'product-name-dynamic';
+            titleEl.textContent = p.productName || p.name;
+            titleEl.style.fontSize = '2.5rem';
+            titleEl.style.fontWeight = '800';
             titleEl.style.marginBottom = '0.5rem';
             
             const ratingHtml = `
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem; color: #ffb800;">
-                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                    <span style="color: var(--text-muted); font-size: 0.9rem;">(4.8 • 124 reviews)</span>
+                <div class="rating-dynamic" style="display: flex; align-items: center; gap: 0.6rem; margin-bottom: 1.5rem;">
+                    <div style="color: #ffb800; font-size: 1rem;">
+                        <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <span style="color: var(--text-muted); font-size: 0.9rem; font-weight: 500;">(4.9 • ${p.reviewCount || 0} reviews)</span>
                 </div>
             `;
             
-            const priceHtml = `<div class="product-price" style="font-size: 1.8rem; font-weight: 700; color: var(--text-main); margin-bottom: 1.5rem;">$${parseFloat(p.price || p.productPrice || 0).toFixed(2)}</div>`;
-            const descHtml = `<p style="margin-bottom: 1.5rem; color: var(--text-muted); line-height: 1.6; font-size: 1.05rem;">${p.description || 'Premium quality product designed for everyday excellence.'}</p>`;
+            const priceHtml = `
+                <div class="price-container-dynamic" style="margin-bottom: 2rem;">
+                    <span class="product-price-dynamic" style="font-size: 2.2rem; font-weight: 800; color: var(--text-main);">$${parseFloat(p.productPrice || p.price || 0).toFixed(2)}</span>
+                    ${p.oldPrice ? `<span style="text-decoration: line-through; color: var(--text-muted); margin-left: 1rem; font-size: 1.2rem;">$${parseFloat(p.oldPrice).toFixed(2)}</span>` : ''}
+                </div>
+            `;
 
+            const descHtml = `<p class="product-desc-dynamic" style="margin-bottom: 2.5rem; color: var(--text-muted); line-height: 1.8; font-size: 1.1rem; max-width: 90%;">${p.productDescription || p.description || 'Experience premium quality craftsmanship and modern design with this exclusive Chenari selection.'}</p>`;
+
+            // Colors
             let colorsHtml = '';
-            if (p.colors && p.colors.length > 0) {
+            const colorList = p.colors || [];
+            if (colorList.length > 0) {
                 colorsHtml = `
-                    <div class="selector-section" style="margin-bottom: 1.5rem;">
-                        <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Color</span>
-                        <div class="options-grid" id="color-options" style="display: flex; gap: 0.8rem;">
-                            ${p.colors.map((c, i) => `
-                                <div class="color-swatch ${i === 0 ? 'active' : ''}" style="width: 36px; height: 36px; border-radius: 50%; cursor: pointer; border: 2px solid ${i === 0 ? 'var(--primary)' : 'transparent'}; background: ${c.toLowerCase() === 'white' ? '#fff; border: 1px solid #ddd' : c}; box-shadow: 0 2px 5px rgba(0,0,0,0.1);" data-color="${c}" title="${c}"></div>
+                    <div class="selector-section" style="margin-bottom: 2rem;">
+                        <span class="selector-label" style="display: block; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px;">Color: <span id="selected-color-name" style="color: var(--text-muted); font-weight: 500;">${colorList[0]}</span></span>
+                        <div class="options-grid" style="display: flex; gap: 1rem;">
+                            ${colorList.map((c, i) => `
+                                <div class="color-swatch-premium ${i === 0 ? 'active' : ''}" 
+                                     style="width: 42px; height: 42px; border-radius: 50%; cursor: pointer; border: 3px solid ${i === 0 ? 'var(--primary)' : '#eee'}; background: ${c.toLowerCase() === 'white' ? '#fff' : c}; box-shadow: var(--shadow-sm); transition: all 0.3s ease;" 
+                                     data-color="${c}" onclick="selectColor(this, '${c}')"></div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+                window.selectColor = (el, color) => {
+                    document.querySelectorAll('.color-swatch-premium').forEach(s => s.style.borderColor = '#eee');
+                    el.style.borderColor = 'var(--primary)';
+                    document.getElementById('selected-color-name').innerText = color;
+                    window.showToast(`Selected color: ${color}`, 'info');
+                };
+            }
+
+            // Variants / Packages
+            let variantHtml = '';
+            const variants = p.variants || ['Standard Edition', 'Premium Pack'];
+            variantHtml = `
+                <div class="selector-section" style="margin-bottom: 2rem;">
+                    <span class="selector-label" style="display: block; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px;">Select Package</span>
+                    <div class="options-grid" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        ${variants.map((v, i) => `
+                            <div class="variant-chip-premium ${i === 0 ? 'active' : ''}" 
+                                 style="padding: 1rem 1.5rem; border: 2px solid ${i === 0 ? 'var(--primary)' : '#eee'}; border-radius: var(--radius-md); cursor: pointer; background: ${i === 0 ? 'rgba(0, 82, 204, 0.05)' : 'transparent'}; transition: all 0.3s ease;" 
+                                 onclick="selectVariant(this, '${v}')">
+                                <span style="font-weight: 600; color: ${i === 0 ? 'var(--primary)' : 'var(--text-main)'};">${v}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            window.selectVariant = (el, variant) => {
+                document.querySelectorAll('.variant-chip-premium').forEach(v => {
+                    v.style.borderColor = '#eee';
+                    v.style.background = 'transparent';
+                    v.querySelector('span').style.color = 'var(--text-main)';
+                });
+                el.style.borderColor = 'var(--primary)';
+                el.style.background = 'rgba(0, 82, 204, 0.05)';
+                el.querySelector('span').style.color = 'var(--primary)';
+                window.showToast(`Switched to ${variant}`, 'info');
+            };
+
+            // Sizes (Future Ready)
+            let sizesHtml = '';
+            if (p.sizes && p.sizes.length > 0) {
+                sizesHtml = `
+                    <div class="selector-section" style="margin-bottom: 2.5rem;">
+                        <span class="selector-label" style="display: block; font-weight: 700; margin-bottom: 1rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px;">Size</span>
+                        <div class="options-grid" style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
+                            ${p.sizes.map(s => `
+                                <div class="size-chip" style="width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border: 2px solid #eee; border-radius: var(--radius-md); cursor: pointer; font-weight: 600; transition: all 0.3s ease;" onclick="this.parentNode.querySelectorAll('.size-chip').forEach(c => {c.style.borderColor='#eee'; c.style.background='transparent'; c.style.color='inherit'}); this.style.borderColor='var(--primary)'; this.style.background='var(--primary)'; this.style.color='#fff';">${s}</div>
                             `).join('')}
                         </div>
                     </div>
                 `;
             }
 
-            let variantHtml = `
-                <div class="selector-section" style="margin-bottom: 1.5rem;">
-                    <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Selection</span>
-                    <div class="options-grid" id="variant-options" style="display: flex; gap: 0.8rem;">
-                        <div class="option-chip active" style="padding: 0.6rem 1.2rem; border: 1px solid var(--primary); border-radius: var(--radius-md); cursor: pointer; background: rgba(0, 82, 204, 0.05); color: var(--primary); font-weight: 500;" data-variant="standard">Standard</div>
-                        <div class="option-chip" style="padding: 0.6rem 1.2rem; border: 1px solid #ddd; border-radius: var(--radius-md); cursor: pointer; color: var(--text-main);" data-variant="premium">Premium Pack</div>
+            const qtyHtml = `
+                <div class="selector-section" style="margin-bottom: 2.5rem; display: flex; align-items: center; gap: 2rem;">
+                    <div>
+                        <span class="selector-label" style="display: block; font-weight: 700; margin-bottom: 0.8rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1.5px;">Quantity</span>
+                        <div class="qty-stepper" style="display: flex; align-items: center; border: 2px solid #eee; border-radius: var(--radius-md); overflow: hidden; width: 140px;">
+                            <button onclick="updateQtyDetail(-1)" style="flex: 1; padding: 0.8rem; background: #fff; border: none; cursor: pointer; font-size: 1.2rem; font-weight: 700;">-</button>
+                            <input type="number" id="product-qty-val" value="1" min="1" max="10" readonly style="width: 40px; text-align: center; border: none; font-weight: 700; font-family: inherit; font-size: 1.1rem;">
+                            <button onclick="updateQtyDetail(1)" style="flex: 1; padding: 0.8rem; background: #fff; border: none; cursor: pointer; font-size: 1.2rem; font-weight: 700;">+</button>
+                        </div>
                     </div>
                 </div>
             `;
-
-            const qtyHtml = `
-                <div class="selector-section" style="margin-bottom: 2rem;">
-                    <span class="selector-label" style="display: block; font-weight: 600; margin-bottom: 0.5rem; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Quantity</span>
-                    <select id="product-qty" class="filter-select" style="padding: 0.6rem; border-radius: var(--radius-md); border: 1px solid #ddd; width: 100px; font-size: 1rem;">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                    </select>
-                </div>
-            `;
+            window.updateQtyDetail = (delta) => {
+                const input = document.getElementById('product-qty-val');
+                let val = parseInt(input.value) + delta;
+                if (val >= 1 && val <= 10) input.value = val;
+            };
 
             const buttonsHtml = `
-                <div class="action-buttons" style="display: flex; gap: 1rem; margin-bottom: 2.5rem;">
-                    <button class="btn btn-primary btn-large" id="detail-add-cart" style="flex: 2; padding: 1.2rem; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
-                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                <div class="action-buttons-premium" style="display: grid; grid-template-columns: 2fr 1fr 60px; gap: 1rem; margin-bottom: 3rem;">
+                    <button class="btn btn-primary btn-large" id="detail-add-cart" style="padding: 1.2rem; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px;">
+                        <i class="fas fa-shopping-bag" style="margin-right: 0.5rem;"></i> Add to Cart
                     </button>
-                    <button class="btn btn-outline btn-large" id="detail-buy-now" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Buy Now</button>
-                    <button class="btn" onclick="handleAddToWishlist('${p.id}')" style="background: #f4f5f7; border-radius: var(--radius-md); padding: 1.2rem; width: 60px;">
-                        <i class="far fa-heart" style="font-size: 1.4rem;"></i>
+                    <button class="btn btn-outline btn-large" id="detail-buy-now" style="padding: 1.2rem; font-size: 1.1rem; font-weight: 700;">Buy Now</button>
+                    <button class="btn wishlist-btn-premium" onclick="handleAddToWishlist('${p.id}')" style="background: #f4f5f7; border-radius: var(--radius-md); padding: 1rem; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease;">
+                        <i class="far fa-heart" style="font-size: 1.5rem;"></i>
                     </button>
                 </div>
             `;
 
             const deliveryHtml = `
-                <div style="padding: 1.5rem; background: #f9f9f9; border-radius: var(--radius-md); border: 1px solid #eee;">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem;">
-                        <i class="fas fa-truck" style="color: var(--primary); font-size: 1.2rem;"></i>
+                <div class="delivery-card-premium" style="padding: 2rem; background: #fafbfc; border-radius: var(--radius-lg); border: 1px solid #f0f2f5;">
+                    <div style="display: flex; gap: 1.5rem; margin-bottom: 2rem;">
+                        <div style="width: 48px; height: 48px; background: rgba(0, 82, 204, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-truck" style="color: var(--primary); font-size: 1.2rem;"></i>
+                        </div>
                         <div>
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">Free Delivery</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">Enter your postal code for delivery availability</div>
+                            <div style="font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem;">Express Shipping</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Free delivery on orders over $500. Estimated 2-4 business days.</div>
                         </div>
                     </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <i class="fas fa-undo" style="color: var(--primary); font-size: 1.2rem;"></i>
+                    <div style="display: flex; gap: 1.5rem;">
+                        <div style="width: 48px; height: 48px; background: rgba(69, 179, 69, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-undo-alt" style="color: var(--chenari-green); font-size: 1.2rem;"></i>
+                        </div>
                         <div>
-                            <div style="font-weight: 600; font-size: 1rem; margin-bottom: 0.25rem;">Return Delivery</div>
-                            <div style="font-size: 0.85rem; color: var(--text-muted);">Free 30 Days Delivery Returns. <a href="#" style="color: var(--primary);">Details</a></div>
+                            <div style="font-weight: 700; font-size: 1rem; margin-bottom: 0.4rem;">Flexible Returns</div>
+                            <div style="font-size: 0.85rem; color: var(--text-muted); line-height: 1.5;">Shop with confidence. 30-day no-questions-asked return policy.</div>
                         </div>
                     </div>
                 </div>
@@ -305,45 +385,19 @@ async function loadProductDetails() {
 
             infoPanel.innerHTML = '';
             infoPanel.appendChild(titleEl);
-            infoPanel.insertAdjacentHTML('beforeend', ratingHtml + priceHtml + descHtml + colorsHtml + variantHtml + qtyHtml + buttonsHtml + deliveryHtml);
+            infoPanel.insertAdjacentHTML('beforeend', ratingHtml + priceHtml + descHtml + colorsHtml + variantHtml + sizesHtml + qtyHtml + buttonsHtml + deliveryHtml);
 
-            // Color Selection Logic
-            const swatches = infoPanel.querySelectorAll('.color-swatch');
-            let selectedColor = p.colors && p.colors.length > 0 ? p.colors[0] : null;
-            swatches.forEach(swatch => {
-                swatch.addEventListener('click', () => {
-                    swatches.forEach(s => { s.classList.remove('active'); s.style.borderColor = 'transparent'; });
-                    swatch.classList.add('active');
-                    swatch.style.borderColor = 'var(--primary)';
-                    selectedColor = swatch.dataset.color;
-                });
-            });
-
-            // Variant Selection Logic
-            const chips = infoPanel.querySelectorAll('.option-chip');
-            let selectedVariant = 'standard';
-            chips.forEach(chip => {
-                chip.addEventListener('click', () => {
-                    chips.forEach(c => { c.classList.remove('active'); c.style.borderColor = '#ddd'; c.style.background = 'transparent'; c.style.color = 'var(--text-main)'; });
-                    chip.classList.add('active');
-                    chip.style.borderColor = 'var(--primary)';
-                    chip.style.background = 'rgba(0, 82, 204, 0.05)';
-                    chip.style.color = 'var(--primary)';
-                    selectedVariant = chip.dataset.variant;
-                });
-            });
-
-            // Add to Cart Bind
-            const addToCartBtn = document.getElementById('detail-add-cart');
-            addToCartBtn.addEventListener('click', () => {
-                const qty = parseInt(document.getElementById('product-qty').value);
-                const cartItem = {
-                    ...p,
-                    selectedColor,
-                    selectedVariant
-                };
+            // Re-bind events for the new HTML
+            document.getElementById('detail-add-cart').addEventListener('click', () => {
+                const qty = parseInt(document.getElementById('product-qty-val').value);
+                const cartItem = { ...p, qty };
                 window.handleAddToCart(cartItem, qty);
             });
+            document.getElementById('detail-buy-now').addEventListener('click', () => {
+                const cartItem = { ...p, qty: 1 };
+                window.handleBuyNow(cartItem);
+            });
+        }
 
             // Buy Now Bind
             const buyNowBtn = document.getElementById('detail-buy-now');
