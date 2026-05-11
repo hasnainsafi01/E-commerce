@@ -65,6 +65,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             syncCartWithFirestore(user.uid);
             
+            // If on profile page, load profile
+            if (window.location.pathname.includes('profile.html')) {
+                loadUserProfile();
+            }
+
             // Real-time Navbar Profile Image Sync
             onSnapshot(doc(db, "users", user.uid), (docSnap) => {
                 if (docSnap.exists()) {
@@ -675,43 +680,46 @@ if (window.location.pathname.includes('cart.html')) {
  * User Profile Logic
  */
 async function loadUserProfile() {
-    if (!currentUser) {
-        window.location.href = 'index.html';
-        return;
-    }
+    if (!currentUser) return;
 
     const nameEl = document.getElementById('user-fullname');
     const emailEl = document.getElementById('user-email');
     const avatarEl = document.getElementById('user-avatar');
-    const nameInput = document.getElementById('display-name-input');
+    const fNameInput = document.getElementById('first-name-input');
+    const lNameInput = document.getElementById('last-name-input');
     const emailInput = document.getElementById('email-address');
 
+    // Default from Auth
     if (nameEl) nameEl.textContent = currentUser.displayName || 'Chenari Member';
     if (emailEl) emailEl.textContent = currentUser.email;
-    if (avatarEl && currentUser.photoURL) avatarEl.src = currentUser.photoURL;
-    if (nameInput) nameInput.value = currentUser.displayName || '';
+    if (avatarEl) avatarEl.src = currentUser.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser.displayName || 'User')}&background=0052cc&color=fff`;
     if (emailInput) emailInput.value = currentUser.email;
 
-    // Load additional data from Firestore if needed
-    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
-    if (userDoc.exists()) {
-        const data = userDoc.data();
-        if (nameEl) nameEl.textContent = data.fullName || data.displayName || nameEl.textContent;
-        if (avatarEl) avatarEl.src = data.photoURL || avatarEl.src;
-        
-        const fNameInput = document.getElementById('first-name-input');
-        const lNameInput = document.getElementById('last-name-input');
-        if (fNameInput) fNameInput.value = data.firstName || '';
-        if (lNameInput) lNameInput.value = data.lastName || '';
+    // Detailed from Firestore
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+            const data = userDoc.data();
+            
+            // Prioritize profileImage per user request
+            const profilePic = data.profileImage || data.photoURL || currentUser.photoURL;
+            if (avatarEl && profilePic) avatarEl.src = profilePic;
+            
+            if (nameEl) nameEl.textContent = data.fullName || currentUser.displayName || 'Chenari Member';
+            if (fNameInput) fNameInput.value = data.firstName || (data.fullName ? data.fullName.split(' ')[0] : '');
+            if (lNameInput) lNameInput.value = data.lastName || (data.fullName ? data.fullName.split(' ').slice(1).join(' ') : '');
 
-        const badgeContainer = document.getElementById('user-badges');
-        if (badgeContainer) {
-            const since = data.createdAt?.toDate ? data.createdAt.toDate().getFullYear() : '2024';
-            badgeContainer.innerHTML = `
-                <span class="badge badge-light">Member since ${since}</span>
-                <span class="badge badge-gold">Chenari Elite</span>
-            `;
+            const badgeContainer = document.getElementById('user-badges');
+            if (badgeContainer) {
+                const since = data.createdAt?.toDate ? data.createdAt.toDate().getFullYear() : '2024';
+                badgeContainer.innerHTML = `
+                    <span class="badge badge-light">Member since ${since}</span>
+                    <span class="badge badge-gold">Chenari Elite</span>
+                `;
+            }
         }
+    } catch (err) {
+        console.error("Error loading profile data:", err);
     }
 
     // Load Wishlist & Orders
@@ -788,43 +796,75 @@ if (avatarInput) {
         const file = e.target.files[0];
         if (!file) return;
 
+        // Validation
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedTypes.includes(file.type)) {
+            window.showToast('Please upload a JPG, PNG, or WEBP image.', 'error');
+            return;
+        }
+
         const avatarEl = document.getElementById('user-avatar');
         const originalSrc = avatarEl.src;
+        const uploadBtn = document.getElementById('avatar-label');
+        const originalBtnHTML = uploadBtn.innerHTML;
         
         try {
-            window.showToast('Uploading avatar...', 'info');
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            uploadBtn.style.pointerEvents = 'none';
             avatarEl.style.opacity = '0.5';
 
             // Cloudinary Upload
             const formData = new FormData();
             formData.append('file', file);
-            formData.append('upload_preset', 'ml_default'); // Use your preset or a generic one
+            formData.append('upload_preset', 'E-commerce'); // Verified production preset
 
             const res = await fetch(`https://api.cloudinary.com/v1_1/dqsvcn94y/image/upload`, {
                 method: 'POST',
                 body: formData
             });
+            
+            if (!res.ok) throw new Error('Cloudinary upload failed');
+            
             const data = await res.json();
             const imageUrl = data.secure_url;
 
-            // Update Auth
+            // Update Firebase Auth
             await updateProfile(currentUser, { photoURL: imageUrl });
             
-            // Update Firestore
-            await setDoc(doc(db, "users", currentUser.uid), {
-                photoURL: imageUrl
-            }, { merge: true });
+            // Update Firestore (Ensuring profileImage, fullName, email structure)
+            const userRef = doc(db, "users", currentUser.uid);
+            await updateDoc(userRef, {
+                profileImage: imageUrl,
+                photoURL: imageUrl, // Maintain compatibility
+                updatedAt: serverTimestamp()
+            });
 
+            // Instant UI Update
             avatarEl.src = imageUrl;
-            window.showToast('Avatar updated!', 'success');
+            
+            // Update Navbar if exists
+            const navAvatar = document.querySelector('.nav-profile-img');
+            if (navAvatar) navAvatar.src = imageUrl;
+
+            window.showToast('Profile image updated successfully!', 'success');
         } catch (error) {
-            console.error(error);
+            console.error('Avatar upload error:', error);
             avatarEl.src = originalSrc;
-            window.showToast('Upload failed', 'error');
+            window.showToast('Failed to upload image. Please try again.', 'error');
         } finally {
+            uploadBtn.innerHTML = originalBtnHTML;
+            uploadBtn.style.pointerEvents = 'all';
             avatarEl.style.opacity = '1';
         }
     });
+}
+
+// Avatar Click to Trigger Input
+const avatarImg = document.getElementById('user-avatar');
+if (avatarImg && avatarInput) {
+    avatarImg.style.cursor = 'pointer';
+    avatarImg.title = 'Click to change profile picture';
+    avatarImg.addEventListener('click', () => avatarInput.click());
 }
 
 async function loadUserWishlist() {
@@ -977,23 +1017,32 @@ function injectAuthModal() {
 }
 
 /**
- * Logout Modal Logic
+ * Logout Modal Logic - Premium Redesign
  */
 function injectLogoutModal() {
     if (document.getElementById('logoutModal')) return;
     const modalHTML = `
         <div class="logout-overlay" id="logoutModal">
-            <div class="modal-content logout-modal">
-                <div class="logout-icon">
-                    <i class="fas fa-sign-out-alt"></i>
-                </div>
-                <div class="auth-header">
-                    <h2>Logout Confirmation</h2>
-                    <p>Are you sure you want to logout?</p>
-                </div>
-                <div class="logout-actions">
-                    <button class="btn btn-outline" id="cancel-logout">Cancel</button>
-                    <button class="btn btn-primary" id="confirm-logout">Logout</button>
+            <div class="premium-logout-modal">
+                <div class="logout-glass-bg"></div>
+                <div class="logout-content">
+                    <div class="logout-icon-wrapper">
+                        <div class="icon-circle">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </div>
+                        <div class="icon-pulse"></div>
+                    </div>
+                    <div class="logout-text">
+                        <h2>Sign Out</h2>
+                        <p>Are you sure you want to leave? Your premium shopping journey will be paused.</p>
+                    </div>
+                    <div class="logout-footer-actions">
+                        <button class="logout-btn-secondary" id="cancel-logout">Stay Signed In</button>
+                        <button class="logout-btn-primary" id="confirm-logout">
+                            <span>Sign Me Out</span>
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1003,7 +1052,8 @@ function injectLogoutModal() {
     document.getElementById('cancel-logout').addEventListener('click', hideLogoutModal);
     document.getElementById('confirm-logout').addEventListener('click', async () => {
         const confirmBtn = document.getElementById('confirm-logout');
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging out...';
+        const originalHTML = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing out...';
         confirmBtn.disabled = true;
         await handleLogout();
     });
@@ -1215,6 +1265,7 @@ async function createOrUpdateUserDoc(user, additionalData = {}) {
     const baseData = {
         fullName: user.displayName || 'User',
         email: user.email,
+        profileImage: user.photoURL || null,
         photoURL: user.photoURL || null,
         role: 'user',
         lastLogin: serverTimestamp(),
