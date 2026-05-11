@@ -566,7 +566,7 @@ window.showLogoutModal = () => {
     const modal = document.getElementById('logoutModal');
     if (modal) {
         modal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('modal-open');
     }
 }
 
@@ -574,7 +574,14 @@ function hideLogoutModal() {
     const modal = document.getElementById('logoutModal');
     if (modal) {
         modal.style.display = 'none';
-        document.body.style.overflow = 'auto';
+        document.body.classList.remove('modal-open');
+        
+        // Reset the confirm button state if it was changed
+        const confirmBtn = document.getElementById('confirm-logout');
+        if (confirmBtn) {
+            confirmBtn.innerHTML = 'Logout';
+            confirmBtn.disabled = false;
+        }
     }
 }
 
@@ -793,9 +800,14 @@ async function handleGoogleLogin() {
 async function handleLogout() {
     try {
         await signOut(auth);
+        // Clear any local storage if needed
+        localStorage.removeItem('sh_cart'); // Example: clearing cart on logout
+        hideLogoutModal();
         window.location.href = 'index.html';
     } catch (error) {
         console.error('Logout error:', error);
+        window.showToast("Error logging out. Please try again.", "error");
+        hideLogoutModal();
     }
 }
 
