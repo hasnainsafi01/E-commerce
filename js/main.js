@@ -92,7 +92,7 @@ const GRID_CATEGORY_MAP = {
     'men-grid':              'men',
     'women-grid':            'women',
     'electronics-grid':      'electronics',
-    'essentials-grid':       'home',
+    'essentials-grid':       'essentials',
     'trending-grid':         'trending',
     'clothing-grid':         'clothing',
     'new-arrivals':          'new',   // special handling in loadProducts
