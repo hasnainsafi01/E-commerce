@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Product Details | MyMart</title>
-    <meta name="description" content="View product details, specifications, and customer reviews at MyMart.">
+    <title>Product Details | Chenari.com</title>
+    <meta name="description" content="View premium product details, specifications, and customer reviews at Chenari.com. Experience luxury shopping anytime anywhere.">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
@@ -18,35 +18,30 @@
     <!-- Startup Loader -->
     <div id="mm-startup-loader">
         <div class="mm-loader-brand">
-            <img src="assets/mymart-logo.png" alt="MyMart" class="mm-loader-logo">
-            <div class="mm-loader-name">MyMart</div>
+            <div class="logo" style="font-size: 2.5rem; justify-content: center;">
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
+            </div>
             <div class="mm-loader-ring"></div>
-            <div class="mm-loader-subtext">Loading your experience...</div>
+            <div class="mm-loader-subtext">Preparing your premium experience...</div>
         </div>
     </div>
 
     <!-- Page Transition Loader -->
     <div id="mm-page-loader">
         <div class="mm-page-loader-inner">
-            <img src="assets/mymart-logo.png" alt="MyMart">
+            <div class="logo" style="font-size: 1.5rem;">
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
+            </div>
             <span class="mm-page-loader-text">Loading...</span>
             <div class="mm-page-loader-bar"></div>
         </div>
-    </div>
-
-    <!-- Offline State -->
-    <div id="mm-offline-state">
-        <div class="mm-offline-icon"><i class="fas fa-wifi-slash"></i></div>
-        <div class="mm-offline-title">No Internet Connection</div>
-        <div class="mm-offline-desc">Please check your connection and try again.</div>
-        <button class="mm-offline-btn" onclick="window.location.reload()"><i class="fas fa-redo"></i> Retry</button>
     </div>
 
     <!-- Sticky Navbar -->
     <nav class="navbar">
         <div class="container">
             <a href="index.html" class="logo">
-                <img src="assets/mymart-logo.png" alt="MyMart Logo" style="height: 32px; width: auto; vertical-align: middle; margin-right: 8px;"> <span style="font-weight: 700; letter-spacing: 0.5px;">MyMart</span>
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari<span style="font-size: 0.8rem; vertical-align: top; margin-left: 2px;">.com</span>
             </a>
 
             <div class="search-container">
@@ -55,7 +50,7 @@
             </div>
 
             <div class="nav-actions">
-                <div class="auth-buttons">
+                <div class="auth-buttons" id="nav-auth-buttons">
                     <button class="btn btn-outline" onclick="loginUser()">Login</button>
                     <button class="btn btn-primary" onclick="signupUser()">Sign Up</button>
                 </div>
@@ -89,127 +84,64 @@
 
             <!-- Right: Product Info -->
             <div class="product-info-panel">
-                <div class="skeleton" style="height: 40px; width: 70%; margin-bottom: 0.5rem;"></div>
-                <div class="rating-dynamic" style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                    <div class="skeleton" style="height: 20px; width: 120px;"></div>
-                    <div class="skeleton" style="height: 18px; width: 80px;"></div>
-                </div>
-                
-                <div class="product-price dynamic-price">
-                    <div class="skeleton" style="height: 35px; width: 120px;"></div>
-                </div>
-                
-                <div class="skeleton" style="height: 60px; width: 100%; margin: 1.5rem 0;"></div>
-
-                <!-- Color Selection -->
-                <div class="selector-section">
-                    <span class="selector-label">Color</span>
-                    <div class="options-grid" id="color-options">
-                        <div class="color-swatch active" style="background: #172b4d;" data-color="Midnight Blue"></div>
-                        <div class="color-swatch" style="background: #ffffff; border: 1px solid #ddd;" data-color="Arctic White"></div>
-                        <div class="color-swatch" style="background: #6b778c;" data-color="Slate Gray"></div>
-                    </div>
-                </div>
-
-                <!-- Variant Selection -->
-                <div class="selector-section">
-                    <span class="selector-label">Selection</span>
-                    <div class="options-grid" id="variant-options">
-                        <div class="option-chip active" data-variant="standard">Standard</div>
-                        <div class="option-chip" data-variant="premium">Premium Pack</div>
-                    </div>
-                </div>
-
-                <!-- Quantity -->
-                <div class="selector-section">
-                    <span class="selector-label">Quantity</span>
-                    <div style="display: flex; align-items: center; gap: 1rem;">
-                        <select class="filter-select" style="width: 80px;">
-                            <option>1</option>
-                            <option>2</option>
-                            <option>3</option>
-                            <option>4</option>
-                            <option>5</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="action-buttons">
-                    <button class="btn btn-primary btn-large" onclick="handleAddToCart()">Add to Cart</button>
-                    <button class="btn btn-outline btn-large" onclick="handleBuyNow()">Buy Now</button>
-                    <button class="btn" style="background: #f4f5f7; border-radius: var(--radius-md);" onclick="handleWishlist()">
-                        <i class="far fa-heart" style="font-size: 1.5rem;"></i>
-                    </button>
-                </div>
-
-                <!-- Delivery Info -->
-                <div style="margin-top: 2rem; padding: 1rem; background: #f9f9f9; border-radius: var(--radius-md);">
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                        <i class="fas fa-truck" style="color: var(--primary);"></i>
-                        <div>
-                            <div style="font-weight: 600; font-size: 0.9rem;">Free Delivery</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">Enter your postal code for delivery availability</div>
-                        </div>
-                    </div>
-                    <div style="display: flex; gap: 1rem;">
-                        <i class="fas fa-undo" style="color: var(--primary);"></i>
-                        <div>
-                            <div style="font-weight: 600; font-size: 0.9rem;">Return Delivery</div>
-                            <div style="font-size: 0.8rem; color: var(--text-muted);">Free 30 Days Delivery Returns. Details</div>
-                        </div>
-                    </div>
-                </div>
+                <!-- Data dynamically injected by main.js -->
+                <div class="skeleton" style="height: 40px; width: 80%; margin-bottom: 1rem;"></div>
+                <div class="skeleton" style="height: 20px; width: 40%; margin-bottom: 1.5rem;"></div>
+                <div class="skeleton" style="height: 35px; width: 30%; margin-bottom: 2rem;"></div>
+                <div class="skeleton" style="height: 100px; width: 100%; margin-bottom: 2rem;"></div>
+                <div class="skeleton" style="height: 50px; width: 100%; margin-bottom: 1rem;"></div>
+                <div class="skeleton" style="height: 50px; width: 100%;"></div>
             </div>
         </div>
 
         <!-- Product Specs -->
         <section class="section">
-            <h2 style="margin-bottom: var(--spacing-md);">Product Specifications</h2>
-            <div style="max-width: 800px;">
-                <div class="spec-item"><span>Brand</span><strong>MyMart Premium</strong></div>
-                <div class="spec-item"><span>Model</span><strong>WH-1000XM4</strong></div>
-                <div class="spec-item"><span>Battery Life</span><strong>40 Hours</strong></div>
-                <div class="spec-item"><span>Connectivity</span><strong>Bluetooth 5.0</strong></div>
-            </div>
-        </section>
-
-        <!-- Customer Reviews -->
-        <section class="section reviews-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                <h2>Customer Reviews</h2>
-                <button class="btn btn-outline" onclick="handleWriteReview()">Write a Review</button>
-            </div>
-            
-            <div id="reviews-container">
-                <div class="empty-state">
-                    <i class="far fa-comment-alt"></i>
-                    <h3>No reviews yet</h3>
-                    <p>Be the first to review this product and share your experience with others.</p>
+            <h2 style="font-size: 1.8rem; font-weight: 800; margin-bottom: var(--spacing-md);">Specifications</h2>
+            <div class="specs-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem;">
+                <div class="spec-item" style="display: flex; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #eee;">
+                    <span style="color: var(--text-muted);">Brand</span>
+                    <strong style="font-weight: 600;">Chenari Premium</strong>
                 </div>
-                
-                <!-- Skeleton for future dynamic reviews -->
-                <div class="dynamic-skeleton-list" style="display: none;">
-                    <div class="review-skeleton">
-                        <div class="skeleton avatar-skeleton"></div>
-                        <div class="review-content-skeleton">
-                            <div class="skeleton" style="height: 18px; width: 120px;"></div>
-                            <div class="skeleton" style="height: 14px; width: 100px;"></div>
-                            <div class="skeleton" style="height: 40px; width: 100%;"></div>
-                        </div>
-                    </div>
+                <div class="spec-item" style="display: flex; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #eee;">
+                    <span style="color: var(--text-muted);">Material</span>
+                    <strong style="font-weight: 600;">High Grade Sustainable</strong>
+                </div>
+                <div class="spec-item" style="display: flex; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #eee;">
+                    <span style="color: var(--text-muted);">Warranty</span>
+                    <strong style="font-weight: 600;">12 Months Global</strong>
+                </div>
+                <div class="spec-item" style="display: flex; justify-content: space-between; padding: 1rem; border-bottom: 1px solid #eee;">
+                    <span style="color: var(--text-muted);">Category</span>
+                    <strong style="font-weight: 600;">Limited Edition</strong>
                 </div>
             </div>
         </section>
 
         <!-- Related Products -->
         <section class="section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                <h2>Similar Products</h2>
-                <a href="#" style="color: var(--primary); font-weight: 600;">View All</a>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--spacing-md);">
+                <div>
+                    <h2 style="font-size: 1.8rem; font-weight: 800;">Similar Products</h2>
+                    <p style="color: var(--text-muted);">You might also like these premium picks</p>
+                </div>
             </div>
             <div class="product-grid" id="related-products" data-count="4">
                 <!-- Skeletons generated via main.js -->
+            </div>
+        </section>
+
+        <!-- Customer Reviews -->
+        <section class="section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
+                <h2 style="font-size: 1.8rem; font-weight: 800;">Customer Reviews</h2>
+                <button class="btn btn-outline" style="font-weight: 600;">Write a Review</button>
+            </div>
+            <div id="reviews-container">
+                <div style="text-align: center; padding: 3rem; background: #f9f9f9; border-radius: var(--radius-lg); border: 1px dashed #ddd;">
+                    <i class="far fa-star" style="font-size: 2.5rem; color: #ddd; margin-bottom: 1rem; display: block;"></i>
+                    <h3 style="margin-bottom: 0.5rem;">No reviews yet</h3>
+                    <p style="color: var(--text-muted);">Be the first to share your experience with this product.</p>
+                </div>
             </div>
         </section>
 
@@ -220,38 +152,41 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <a href="index.html" class="logo" style="color: white; margin-bottom: 1.5rem;">
-                        <img src="assets/mymart-logo.png" alt="MyMart Logo" style="height: 32px; width: auto; vertical-align: middle; margin-right: 8px;"> <span style="font-weight: 700; letter-spacing: 0.5px;">MyMart</span>
+                    <a href="index.html" class="logo" style="margin-bottom: 1.5rem;">
+                        <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
                     </a>
-                    <p style="opacity: 0.7;">Your ultimate destination for quality products and seamless shopping experiences.</p>
+                    <p style="font-size: 0.95rem; line-height: 1.8;">Chenari.com is a premium ecommerce platform dedicated to bringing you the finest products with a seamless shopping experience.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>About</h4>
-                    <ul>
-                        <li><a href="#">Company</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Support</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Categories</h4>
+                    <h4>Shop</h4>
                     <ul>
                         <li><a href="electronics.html">Electronics</a></li>
-                        <li><a href="men.html">Fashion</a></li>
-                        <li><a href="essentials.html">Home</a></li>
+                        <li><a href="shoes.html">Shoes</a></li>
+                        <li><a href="bags.html">Bags</a></li>
+                        <li><a href="watches.html">Watches</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h4>Help</h4>
+                    <h4>Support</h4>
                     <ul>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Support</a></li>
-                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">Track Order</a></li>
+                        <li><a href="#">Returns & Refunds</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 MyMart Inc. All rights reserved. | <a href="#">Terms</a> | <a href="#">Privacy</a></p>
+                <p>&copy; 2024 Chenari Inc. All rights reserved. Online Shop Anytime Anywhere.</p>
             </div>
         </div>
     </footer>

@@ -277,7 +277,7 @@ async function loadProductDetails() {
                     <button class="btn btn-primary btn-large" id="detail-add-cart" style="flex: 2; padding: 1.2rem; font-size: 1.1rem; display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
                         <i class="fas fa-shopping-cart"></i> Add to Cart
                     </button>
-                    <button class="btn btn-outline btn-large" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Buy Now</button>
+                    <button class="btn btn-outline btn-large" id="detail-buy-now" style="flex: 1; padding: 1.2rem; font-size: 1.1rem;">Buy Now</button>
                     <button class="btn" onclick="handleAddToWishlist('${p.id}')" style="background: #f4f5f7; border-radius: var(--radius-md); padding: 1.2rem; width: 60px;">
                         <i class="far fa-heart" style="font-size: 1.4rem;"></i>
                     </button>
@@ -344,6 +344,17 @@ async function loadProductDetails() {
                 };
                 window.handleAddToCart(cartItem, qty);
             });
+
+            // Buy Now Bind
+            const buyNowBtn = document.getElementById('detail-buy-now');
+            buyNowBtn.addEventListener('click', () => {
+                const cartItem = {
+                    ...p,
+                    selectedColor,
+                    selectedVariant
+                };
+                window.handleBuyNow(cartItem);
+            });
         }
 
         // 3. Fetch Related Products
@@ -377,7 +388,7 @@ function initSkeletons() {
         const count = grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8;
         for (let i = 0; i < count; i++) {
             const card = document.createElement('a');
-            card.href = "#";
+            card.href = "product-details.html";
             card.className = 'skeleton-card';
             card.style.textDecoration = 'none';
             card.style.display = 'block';
@@ -885,11 +896,21 @@ window.handleAddToCart = async (product, qty = 1) => {
     
     await updateFirestoreCart();
     
-    if (window.showToast) {
-        window.showToast('Product added to cart!', 'success');
-    } else {
-        alert('Product added to cart!');
+    window.showToast('Product added to cart!', 'success');
+};
+
+window.handleBuyNow = async (product) => {
+    if (!currentUser) {
+        showAuthModal();
+        return;
     }
+    // Add to cart and redirect
+    const existing = cartState.find(p => p.id === product.id && p.selectedColor === product.selectedColor && p.selectedVariant === product.selectedVariant);
+    if (!existing) {
+        cartState.push({ ...product, qty: 1 });
+    }
+    await updateFirestoreCart();
+    window.location.href = 'cart.html';
 };
 
 /**
