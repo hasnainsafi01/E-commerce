@@ -535,18 +535,18 @@ function injectAuthModal() {
 function injectLogoutModal() {
     if (document.getElementById('logoutModal')) return;
     const modalHTML = `
-        <div class="modal-overlay" id="logoutModal">
+        <div class="logout-overlay" id="logoutModal">
             <div class="modal-content logout-modal">
                 <div class="logout-icon">
                     <i class="fas fa-sign-out-alt"></i>
                 </div>
                 <div class="auth-header">
                     <h2>Logout Confirmation</h2>
-                    <p>Are you sure you want to log out of your MyMart account?</p>
+                    <p>Are you sure you want to logout?</p>
                 </div>
                 <div class="logout-actions">
                     <button class="btn btn-outline" id="cancel-logout">Cancel</button>
-                    <button class="btn btn-primary" id="confirm-logout">Confirm Logout</button>
+                    <button class="btn btn-primary" id="confirm-logout">Logout</button>
                 </div>
             </div>
         </div>
