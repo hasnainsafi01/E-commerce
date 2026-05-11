@@ -52,8 +52,14 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
+        const wasLoggedOut = !currentUser;
         currentUser = user;
-        cleanupAllOverlays(); // Force-clean any stuck overlays on auth change
+        
+        // Only cleanup overlays when user actually logs in (auth state transition)
+        if (user && wasLoggedOut) {
+            cleanupAllOverlays();
+        }
+        
         updateNavbarUI(user);
         
         if (user) {
@@ -430,6 +436,7 @@ async function updateNavbarUI(user) {
             
             newItem.addEventListener('click', (e) => {
                 e.preventDefault();
+                e.stopPropagation(); // CRITICAL: prevent page transition loader from firing
                 if (!currentUser) {
                     showAuthModal();
                 } else {
@@ -595,6 +602,9 @@ function cleanupAllOverlays() {
     if (logoutModal) logoutModal.style.display = 'none';
     const clearCartModal = document.getElementById('clearCartModal');
     if (clearCartModal) clearCartModal.style.display = 'none';
+    // Also hide page transition loader if it got stuck
+    const pageLoader = document.getElementById('mm-page-loader');
+    if (pageLoader) pageLoader.classList.remove('active');
 }
 
 /**
@@ -658,6 +668,8 @@ let isSignUpMode = false;
 window.showAuthModal = (signup = false) => {
     isSignUpMode = signup;
     const modal = document.getElementById('authModal');
+    if (!modal) return; // Safety: modal not injected yet
+    
     const title = document.getElementById('auth-title');
     const subtitle = document.getElementById('auth-subtitle');
     const nameFields = document.getElementById('name-fields');
@@ -667,23 +679,23 @@ window.showAuthModal = (signup = false) => {
     const switchLink = document.getElementById('switch-auth-mode');
     const errorMsg = document.getElementById('auth-error');
 
-    errorMsg.innerText = '';
+    if (errorMsg) errorMsg.innerText = '';
     if (isSignUpMode) {
-        title.innerText = 'Create Account';
-        subtitle.innerText = 'Join MyMart today for exclusive deals';
-        nameFields.style.display = 'block';
-        confirmPassField.style.display = 'block';
-        submitBtn.innerText = 'Sign Up';
-        switchText.innerText = 'Already have an account?';
-        switchLink.innerText = 'Login';
+        if (title) title.innerText = 'Create Account';
+        if (subtitle) subtitle.innerText = 'Join MyMart today for exclusive deals';
+        if (nameFields) nameFields.style.display = 'block';
+        if (confirmPassField) confirmPassField.style.display = 'block';
+        if (submitBtn) submitBtn.innerText = 'Sign Up';
+        if (switchText) switchText.innerText = 'Already have an account?';
+        if (switchLink) switchLink.innerText = 'Login';
     } else {
-        title.innerText = 'Welcome Back';
-        subtitle.innerText = 'Please login to continue your shopping experience';
-        nameFields.style.display = 'none';
-        confirmPassField.style.display = 'none';
-        submitBtn.innerText = 'Login';
-        switchText.innerText = 'Don\'t have an account?';
-        switchLink.innerText = 'Sign Up';
+        if (title) title.innerText = 'Welcome Back';
+        if (subtitle) subtitle.innerText = 'Please login to continue your shopping experience';
+        if (nameFields) nameFields.style.display = 'none';
+        if (confirmPassField) confirmPassField.style.display = 'none';
+        if (submitBtn) submitBtn.innerText = 'Login';
+        if (switchText) switchText.innerText = 'Don\'t have an account?';
+        if (switchLink) switchLink.innerText = 'Sign Up';
     }
     modal.style.display = 'flex';
     document.body.classList.add('modal-open');
