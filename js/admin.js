@@ -25,7 +25,7 @@ const db = getFirestore(app);
 const auth = getAuth(app);
 
 // Cloudinary Configuration
-const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dxpmh3rf6/image/upload";
+const CLOUDINARY_URL = "https://api.cloudinary.com/v1_1/dqsvcn94y/image/upload";
 const CLOUDINARY_UPLOAD_PRESET = "E-commerce";
 
 let currentAdmin = null;
