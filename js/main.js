@@ -1,5 +1,5 @@
 /**
- * MyMart Core Logic - Module
+ * Chenari.com Core Logic - Module
  * Handles Authentication, Cart, and Global UI
  */
 
@@ -342,9 +342,7 @@ async function loadProductDetails() {
                     selectedColor,
                     selectedVariant
                 };
-                for(let i=0; i<qty; i++){
-                    window.handleAddToCart(cartItem);
-                }
+                window.handleAddToCart(cartItem, qty);
             });
         }
 
@@ -492,8 +490,8 @@ function injectAuthModal() {
             <div class="modal-content auth-modal">
                 <i class="fas fa-times modal-close" id="close-auth"></i>
                 <div class="auth-header">
-                    <h2 id="auth-title">Welcome Back</h2>
-                    <p id="auth-subtitle">Please login to continue your shopping experience</p>
+                    <h2 id="auth-title">Welcome to Chenari</h2>
+                    <p id="auth-subtitle">Please login to continue your premium shopping experience</p>
                 </div>
                 <form id="auth-form" class="auth-form">
                     <div class="form-group" id="name-fields" style="display: none;">
@@ -683,8 +681,8 @@ window.showAuthModal = (signup = false) => {
 
     if (errorMsg) errorMsg.innerText = '';
     if (isSignUpMode) {
-        if (title) title.innerText = 'Create Account';
-        if (subtitle) subtitle.innerText = 'Join MyMart today for exclusive deals';
+        if (title) title.innerText = 'Create Chenari Account';
+        if (subtitle) subtitle.innerText = 'Join Chenari.com today for exclusive drops';
         if (nameFields) nameFields.style.display = 'block';
         if (confirmPassField) confirmPassField.style.display = 'block';
         if (submitBtn) submitBtn.innerText = 'Sign Up';
@@ -692,7 +690,7 @@ window.showAuthModal = (signup = false) => {
         if (switchLink) switchLink.innerText = 'Login';
     } else {
         if (title) title.innerText = 'Welcome Back';
-        if (subtitle) subtitle.innerText = 'Please login to continue your shopping experience';
+        if (subtitle) subtitle.innerText = 'Please login to continue your premium shopping experience';
         if (nameFields) nameFields.style.display = 'none';
         if (confirmPassField) confirmPassField.style.display = 'none';
         if (submitBtn) submitBtn.innerText = 'Login';
@@ -1117,9 +1115,27 @@ function setupNavbarScroll() {
 
 function setupSearch() {
     const searchBar = document.querySelector('.search-bar');
-    if (searchBar) searchBar.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') console.log('Searching for:', searchBar.value);
-    });
+    if (searchBar) {
+        searchBar.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const query = searchBar.value.trim();
+                if (query) {
+                    window.showToast(`Searching for "${query}"...`, 'info');
+                    // Future: window.location.href = `search.html?q=${encodeURIComponent(query)}`;
+                }
+            }
+        });
+        
+        // Mobile Search Toggle
+        const searchIcon = document.querySelector('.search-icon');
+        if (searchIcon) {
+            searchIcon.addEventListener('click', () => {
+                searchBar.focus();
+                const query = searchBar.value.trim();
+                if (query) window.showToast(`Searching for "${query}"...`, 'info');
+            });
+        }
+    }
 }
 
 function setupNewsletter() {
@@ -1128,7 +1144,7 @@ function setupNewsletter() {
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const email = form.querySelector('input').value;
-            alert(`Thank you for subscribing with ${email}!`);
+            window.showToast(`Welcome to the Chenari Circle, ${email}!`, 'success');
             form.reset();
         });
     }

@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MyMart | Premium E-commerce Experience</title>
-    <meta name="description" content="Discover premium tech, fashion, and lifestyle products at MyMart. The ultimate shopping destination.">
+    <title>Chenari.com | Premium Online Shopping Anytime Anywhere</title>
+    <meta name="description" content="Chenari.com - Your ultimate destination for premium tech, fashion, and lifestyle products. Experience modern online shopping anytime, anywhere.">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
@@ -18,17 +18,20 @@
     <!-- Startup Loader -->
     <div id="mm-startup-loader">
         <div class="mm-loader-brand">
-            <img src="assets/mymart-logo.png" alt="MyMart" class="mm-loader-logo">
-            <div class="mm-loader-name">MyMart</div>
+            <div class="logo" style="font-size: 2.5rem; justify-content: center;">
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
+            </div>
             <div class="mm-loader-ring"></div>
-            <div class="mm-loader-subtext">Loading your experience...</div>
+            <div class="mm-loader-subtext">Preparing your premium experience...</div>
         </div>
     </div>
 
     <!-- Page Transition Loader -->
     <div id="mm-page-loader">
         <div class="mm-page-loader-inner">
-            <img src="assets/mymart-logo.png" alt="MyMart">
+            <div class="logo" style="font-size: 1.5rem;">
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
+            </div>
             <span class="mm-page-loader-text">Loading...</span>
             <div class="mm-page-loader-bar"></div>
         </div>
@@ -37,8 +40,8 @@
     <!-- Offline State -->
     <div id="mm-offline-state">
         <div class="mm-offline-icon"><i class="fas fa-wifi-slash"></i></div>
-        <div class="mm-offline-title">No Internet Connection</div>
-        <div class="mm-offline-desc">Please check your connection and try again.</div>
+        <div class="mm-offline-title">Connection Lost</div>
+        <div class="mm-offline-desc">Please check your internet connection and try again.</div>
         <button class="mm-offline-btn" onclick="window.location.reload()"><i class="fas fa-redo"></i> Retry</button>
     </div>
 
@@ -46,16 +49,16 @@
     <nav class="navbar">
         <div class="container">
             <a href="index.html" class="logo">
-                <img src="assets/mymart-logo.png" alt="MyMart Logo" style="height: 32px; width: auto; vertical-align: middle; margin-right: 8px;"> <span style="font-weight: 700; letter-spacing: 0.5px;">MyMart</span>
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari<span style="font-size: 0.8rem; vertical-align: top; margin-left: 2px;">.com</span>
             </a>
 
             <div class="search-container">
-                <input type="text" class="search-bar" placeholder="Search for products, brands and more...">
+                <input type="text" class="search-bar" placeholder="Search for premium products, brands and more...">
                 <i class="fas fa-search search-icon"></i>
             </div>
 
             <div class="nav-actions">
-                <div class="auth-buttons">
+                <div class="auth-buttons" id="nav-auth-buttons">
                     <button class="btn btn-outline" onclick="loginUser()">Login</button>
                     <button class="btn btn-primary" onclick="signupUser()">Sign Up</button>
                 </div>
@@ -77,15 +80,14 @@
     <div class="category-menu">
         <div class="container">
             <ul>
+                <li><a href="#" class="category-link active">Home</a></li>
+                <li><a href="electronics.html" class="category-link">Electronics</a></li>
                 <li><a href="shoes.html" class="category-link">Shoes</a></li>
                 <li><a href="bags.html" class="category-link">Bags</a></li>
                 <li><a href="watches.html" class="category-link">Watches</a></li>
-                <li><a href="glasses.html" class="category-link">Glasses</a></li>
                 <li><a href="men.html" class="category-link">Men</a></li>
                 <li><a href="women.html" class="category-link">Women</a></li>
-                <li><a href="electronics.html" class="category-link">Electronics</a></li>
                 <li><a href="essentials.html" class="category-link">Essentials</a></li>
-                <li><a href="index.html" class="category-link">Home</a></li>
             </ul>
         </div>
     </div>
@@ -93,155 +95,77 @@
     <!-- Hero Banner Carousel -->
     <section class="hero" id="hero-slider">
         
+        <!-- Slide 1 -->
+        <div class="hero-slide active">
+            <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop" alt="Premium Shopping" class="hero-image">
+            <div class="hero-content">
+                <span style="display: inline-block; font-size: 0.9rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: var(--chenari-blue); margin-bottom: 1rem; background: rgba(255,255,255,0.95); padding: 0.4rem 1.2rem; border-radius: 4px;">Exclusive Collection</span>
+                <h1>Elevate Your Lifestyle</h1>
+                <p>Discover a curated world of premium tech, fashion, and luxury essentials at Chenari.com.</p>
+                <button class="btn btn-primary" style="padding: 1.2rem 3rem; font-size: 1.1rem;">Explore Now</button>
+            </div>
+        </div>
+
         <!-- Controls -->
         <button class="hero-arrow prev" onclick="prevSlide()"><i class="fas fa-chevron-left"></i></button>
         <button class="hero-arrow next" onclick="nextSlide()"><i class="fas fa-chevron-right"></i></button>
 
-        <div class="hero-indicators" id="hero-dots">
-            <!-- Dots generated by JS -->
-        </div>
-
-        <!-- Slide 1: Welcome -->
-        <div class="hero-slide active">
-            <img src="assets/hero.png" alt="MyMart" class="hero-image">
-            <div class="hero-content">
-                <span style="display: inline-block; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; color: var(--primary); margin-bottom: 1rem; background: rgba(255,255,255,0.9); padding: 0.3rem 1rem; border-radius: 20px;">Online Shopping Anytime Anywhere</span>
-                <h1>Welcome to MyMart</h1>
-                <p>Exclusive deals on premium electronics and smart home devices. Upgrade your lifestyle today.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='electronics.html'">Shop Now</button>
-            </div>
-        </div>
-
-        <!-- Slide 2: Shoes -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop" alt="Shoes" class="hero-image">
-            <div class="hero-content">
-                <h1>Step Into Style</h1>
-                <p>Premium sneakers and footwear for every occasion. Discover the latest collections.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='shoes.html'">Shop Shoes</button>
-            </div>
-        </div>
-
-        <!-- Slide 3: Luxury Watches -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1524592094714-0f0654e20314?q=80&w=2070&auto=format&fit=crop" alt="Watches" class="hero-image">
-            <div class="hero-content">
-                <h1>Timeless Elegance</h1>
-                <p>Discover modern luxury watches crafted for precision and style.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='watches.html'">Shop Watches</button>
-            </div>
-        </div>
-
-        <!-- Slide 4: Premium Bags -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1584916201218-f4242ceb4809?q=80&w=2070&auto=format&fit=crop" alt="Bags" class="hero-image">
-            <div class="hero-content">
-                <h1>Carry Perfection</h1>
-                <p>Premium leather bags and accessories designed for the modern lifestyle.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='bags.html'">Shop Bags</button>
-            </div>
-        </div>
-
-        <!-- Slide 5: Glasses -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1511499767150-a48a237f0083?q=80&w=2070&auto=format&fit=crop" alt="Glasses" class="hero-image">
-            <div class="hero-content">
-                <h1>See The World Differently</h1>
-                <p>Stylish sunglasses and designer eyewear to complete your look.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='glasses.html'">Shop Glasses</button>
-            </div>
-        </div>
-
-        <!-- Slide 6: Men's Fashion -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1617137968427-85924c800a22?q=80&w=2070&auto=format&fit=crop" alt="Men's Fashion" class="hero-image">
-            <div class="hero-content">
-                <h1>Refined Men's Wear</h1>
-                <p>Upgrade your wardrobe with our latest collection of men's premium apparel.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='men.html'">Shop Men's</button>
-            </div>
-        </div>
-
-        <!-- Slide 7: Women's Fashion -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1483985988355-763728e1935b?q=80&w=2070&auto=format&fit=crop" alt="Women's Fashion" class="hero-image">
-            <div class="hero-content">
-                <h1>Chic & Contemporary</h1>
-                <p>Discover the latest trends in women's fashion. Elegance in every thread.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='women.html'">Shop Women's</button>
-            </div>
-        </div>
-
-        <!-- Slide 8: Home Essentials -->
-        <div class="hero-slide">
-            <img src="https://images.unsplash.com/photo-1556020685-ae41abfc9365?q=80&w=2070&auto=format&fit=crop" alt="Home Essentials" class="hero-image">
-            <div class="hero-content">
-                <h1>Elevate Your Space</h1>
-                <p>Curated home essentials and decor to make your house feel like a premium home.</p>
-                <button class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.1rem;" onclick="window.location.href='essentials.html'">Shop Essentials</button>
-            </div>
-        </div>
-
+        <div class="hero-indicators" id="hero-dots"></div>
     </section>
 
     <!-- Main Content -->
     <main class="container">
         
-        <!-- Featured Categories -->
+        <!-- Featured Categories Grid -->
         <section class="section">
-            <h2 style="margin-bottom: var(--spacing-md);">Shop by Category</h2>
-            <div class="product-grid" id="featured-categories">
-                <!-- Dynamically filled with skeletons -->
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--spacing-md);">
+                <div>
+                    <h2 style="font-size: 2rem; font-weight: 800;">Featured Categories</h2>
+                    <p style="color: var(--text-muted);">Explore our top-tier collections</p>
+                </div>
+                <a href="#" style="color: var(--primary); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">View All</a>
+            </div>
+            <div class="product-grid" id="featured-grid" data-count="4">
+                <!-- Skeleton Placeholders -->
             </div>
         </section>
 
         <!-- New Arrivals -->
         <section class="section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                <h2>New Arrivals</h2>
-                <a href="#" style="color: var(--primary); font-weight: 600;">View All</a>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--spacing-md);">
+                <div>
+                    <h2 style="font-size: 2rem; font-weight: 800;">New Arrivals</h2>
+                    <p style="color: var(--text-muted);">Freshly curated for you</p>
+                </div>
+                <a href="#" style="color: var(--primary); font-weight: 700; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 1px;">Discover More</a>
             </div>
-            <div class="product-grid" id="new-arrivals">
-                <!-- Dynamically filled with skeletons -->
+            <div class="product-grid" id="new-arrivals" data-count="8">
+                <!-- Skeleton Placeholders -->
             </div>
         </section>
 
-        <!-- Trending Products -->
+        <!-- Trending Now -->
         <section class="section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--spacing-md);">
-                <h2>Trending Now</h2>
-                <a href="#" style="color: var(--primary); font-weight: 600;">View All</a>
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: var(--spacing-md);">
+                <div>
+                    <h2 style="font-size: 2rem; font-weight: 800;">Trending Now</h2>
+                    <p style="color: var(--text-muted);">Most popular picks this week</p>
+                </div>
             </div>
             <div class="product-grid" id="trending-grid" data-count="4">
-                <!-- Dynamically filled with skeletons -->
+                <!-- Skeleton Placeholders -->
             </div>
         </section>
 
-        <!-- Men Collection -->
-        <section class="section">
-            <h2 style="margin-bottom: var(--spacing-md);">Men Collection</h2>
-            <div class="product-grid" id="men-grid" data-count="4">
-                <!-- Dynamically filled with skeletons -->
-            </div>
-        </section>
-
-        <!-- Women Collection -->
-        <section class="section">
-            <h2 style="margin-bottom: var(--spacing-md);">Women Collection</h2>
-            <div class="product-grid" id="women-grid" data-count="4">
-                <!-- Dynamically filled with skeletons -->
-            </div>
-        </section>
-
-        <!-- Newsletter Section -->
-        <section class="newsletter">
+        <!-- Newsletter -->
+        <section class="newsletter" style="border-radius: var(--radius-lg); margin: var(--spacing-lg) 0;">
             <div class="container">
                 <div class="newsletter-content">
-                    <h2>Join the MyMart Community</h2>
-                    <p>Subscribe to our newsletter and receive exclusive early access to new arrivals, sales, and a 10% discount on your first order.</p>
+                    <h2>Join the Chenari Circle</h2>
+                    <p>Subscribe for exclusive early access to drops, sales, and a 10% welcome discount.</p>
                     <form class="newsletter-form">
-                        <input type="email" class="newsletter-input" placeholder="Enter your email address" required>
-                        <button type="submit" class="btn btn-white">Subscribe</button>
+                        <input type="email" class="newsletter-input" placeholder="Your premium email" required>
+                        <button type="submit" class="btn btn-white" style="padding: 1rem 2.5rem; color: var(--primary);">Join Now</button>
                     </form>
                 </div>
             </div>
@@ -254,38 +178,41 @@
         <div class="container">
             <div class="footer-grid">
                 <div class="footer-col">
-                    <a href="#" class="logo" style="color: white; margin-bottom: 1.5rem;">
-                        <img src="assets/mymart-logo.png" alt="MyMart Logo" style="height: 32px; width: auto; vertical-align: middle; margin-right: 8px;"> <span style="font-weight: 700; letter-spacing: 0.5px;">MyMart</span>
+                    <a href="index.html" class="logo" style="margin-bottom: 1.5rem;">
+                        <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
                     </a>
-                    <p style="opacity: 0.7;">Your ultimate destination for quality products and seamless shopping experiences.</p>
+                    <p style="font-size: 0.95rem; line-height: 1.8;">Chenari.com is a premium ecommerce platform dedicated to bringing you the finest products with a seamless shopping experience.</p>
                 </div>
                 <div class="footer-col">
-                    <h4>About</h4>
-                    <ul>
-                        <li><a href="#">Company</a></li>
-                        <li><a href="#">Careers</a></li>
-                        <li><a href="#">Support</a></li>
-                    </ul>
-                </div>
-                <div class="footer-col">
-                    <h4>Categories</h4>
+                    <h4>Shop</h4>
                     <ul>
                         <li><a href="#">Electronics</a></li>
                         <li><a href="#">Fashion</a></li>
-                        <li><a href="#">Home</a></li>
+                        <li><a href="#">Home & Decor</a></li>
+                        <li><a href="#">Accessories</a></li>
                     </ul>
                 </div>
                 <div class="footer-col">
-                    <h4>Help</h4>
+                    <h4>Support</h4>
                     <ul>
-                        <li><a href="#">Contact</a></li>
-                        <li><a href="#">Support</a></li>
-                        <li><a href="#">Terms</a></li>
+                        <li><a href="#">Track Order</a></li>
+                        <li><a href="#">Returns & Refunds</a></li>
+                        <li><a href="#">Shipping Info</a></li>
+                        <li><a href="#">FAQs</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Company</h4>
+                    <ul>
+                        <li><a href="#">About Us</a></li>
+                        <li><a href="#">Careers</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
                     </ul>
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2024 MyMart Inc. All rights reserved. | <a href="#">Terms</a> | <a href="#">Privacy</a></p>
+                <p>&copy; 2024 Chenari Inc. All rights reserved. Online Shop Anytime Anywhere.</p>
             </div>
         </div>
     </footer>

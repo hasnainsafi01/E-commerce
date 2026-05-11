@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Electronics & Gadgets | MyMart</title>
-    <meta name="description" content="Upgrade your life with the latest tech. From smartphones and laptops to smart home devices.">
+    <title>Electronics & Gadgets | Chenari.com</title>
+    <meta name="description" content="Upgrade your life with the latest tech from Chenari.com. From smartphones and laptops to smart home devices.">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
@@ -18,35 +18,30 @@
     <!-- Startup Loader -->
     <div id="mm-startup-loader">
         <div class="mm-loader-brand">
-            <img src="assets/mymart-logo.png" alt="MyMart" class="mm-loader-logo">
-            <div class="mm-loader-name">MyMart</div>
+            <div class="logo" style="font-size: 2.5rem; justify-content: center;">
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
+            </div>
             <div class="mm-loader-ring"></div>
-            <div class="mm-loader-subtext">Loading your experience...</div>
+            <div class="mm-loader-subtext">Loading your premium experience...</div>
         </div>
     </div>
 
     <!-- Page Transition Loader -->
     <div id="mm-page-loader">
         <div class="mm-page-loader-inner">
-            <img src="assets/mymart-logo.png" alt="MyMart">
+            <div class="logo" style="font-size: 1.5rem;">
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari
+            </div>
             <span class="mm-page-loader-text">Loading...</span>
             <div class="mm-page-loader-bar"></div>
         </div>
-    </div>
-
-    <!-- Offline State -->
-    <div id="mm-offline-state">
-        <div class="mm-offline-icon"><i class="fas fa-wifi-slash"></i></div>
-        <div class="mm-offline-title">No Internet Connection</div>
-        <div class="mm-offline-desc">Please check your connection and try again.</div>
-        <button class="mm-offline-btn" onclick="window.location.reload()"><i class="fas fa-redo"></i> Retry</button>
     </div>
 
     <!-- Sticky Navbar -->
     <nav class="navbar">
         <div class="container">
             <a href="index.html" class="logo">
-                <img src="assets/mymart-logo.png" alt="MyMart Logo" style="height: 32px; width: auto; vertical-align: middle; margin-right: 8px;"> <span style="font-weight: 700; letter-spacing: 0.5px;">MyMart</span>
+                <span class="blue">C</span><span class="red">h</span><span class="green">e</span>nari<span style="font-size: 0.8rem; vertical-align: top; margin-left: 2px;">.com</span>
             </a>
 
             <div class="search-container">
@@ -55,7 +50,7 @@
             </div>
 
             <div class="nav-actions">
-                <div class="auth-buttons">
+                <div class="auth-buttons" id="nav-auth-buttons">
                     <button class="btn btn-outline" onclick="loginUser()">Login</button>
                     <button class="btn btn-primary" onclick="signupUser()">Sign Up</button>
                 </div>
@@ -65,7 +60,7 @@
                     <span>Profile</span>
                 </a>
 
-                <div class="nav-item">
+                <div class="nav-item" onclick="openCart()">
                     <i class="fas fa-shopping-cart"></i>
                     <span>Cart</span>
                 </div>
@@ -77,23 +72,23 @@
     <div class="category-menu">
         <div class="container">
             <ul>
+                <li><a href="index.html" class="category-link">Home</a></li>
+                <li><a href="electronics.html" class="category-link active">Electronics</a></li>
                 <li><a href="shoes.html" class="category-link">Shoes</a></li>
                 <li><a href="bags.html" class="category-link">Bags</a></li>
                 <li><a href="watches.html" class="category-link">Watches</a></li>
-                <li><a href="glasses.html" class="category-link">Glasses</a></li>
                 <li><a href="men.html" class="category-link">Men</a></li>
                 <li><a href="women.html" class="category-link">Women</a></li>
-                <li><a href="electronics.html" class="category-link active" style="color: var(--primary);">Electronics</a></li>
                 <li><a href="essentials.html" class="category-link">Essentials</a></li>
-                <li><a href="index.html" class="category-link">Home</a></li>
             </ul>
         </div>
     </div>
 
     <!-- Category Hero -->
     <section class="hero" style="height: 300px;">
+        <img src="https://images.unsplash.com/photo-1498049794561-7780e7231661?q=80&w=2070&auto=format&fit=crop" alt="Electronics" class="hero-image">
         <div class="hero-content" style="padding-left: 0; text-align: center; width: 100%; max-width: 100%;">
-            <h1 style="font-size: 3rem;">Future Tech & Electronics</h1>
+            <h1 style="font-size: 3.5rem;">Future Tech</h1>
             <p>Innovative solutions for your digital life</p>
         </div>
     </section>
