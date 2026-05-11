@@ -163,14 +163,13 @@ window.navigateToProduct = function(productId) {
 
 function renderProducts(grid, products) {
     grid.innerHTML = products.map(p => {
-        // Safely escape product data for inline onclick
-        const safeId = encodeURIComponent(p.id);
+        const productUrl = getProductDetailsUrl(p.id);
         const imageUrl = p.imageUrl || p.productImage || ''; // Support both names
         return `
-        <div class="product-card" onclick="window.navigateToProduct('${safeId}')" style="cursor: pointer;">
+        <a href="${productUrl}" class="product-card" style="text-decoration: none; color: inherit; display: block;">
             <div class="product-image-container">
                 <img src="${imageUrl}" alt="${p.name || p.productName || 'Product'}" class="product-image" loading="lazy">
-                <button class="wishlist-btn" onclick="event.stopPropagation(); handleAddToWishlist('${p.id}')">
+                <button class="wishlist-btn" onclick="event.preventDefault(); event.stopPropagation(); handleAddToWishlist('${p.id}')">
                     <i class="far fa-heart"></i>
                 </button>
             </div>
@@ -179,12 +178,12 @@ function renderProducts(grid, products) {
                 <h3 class="product-title">${p.name || p.productName || 'Unnamed Product'}</h3>
                 <div class="product-footer">
                     <span class="product-price">$${parseFloat(p.price || p.productPrice || 0).toFixed(2)}</span>
-                    <button class="add-to-cart-btn" onclick='event.stopPropagation(); handleAddToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
+                    <button class="add-to-cart-btn" onclick='event.preventDefault(); event.stopPropagation(); handleAddToCart(${JSON.stringify(p).replace(/'/g, "&#39;")})'>
                         <i class="fas fa-shopping-bag"></i>
                     </button>
                 </div>
             </div>
-        </div>`;
+        </a>`;
     }).join('');
 }
 
@@ -379,8 +378,11 @@ function initSkeletons() {
         grid.innerHTML = '';
         const count = grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8;
         for (let i = 0; i < count; i++) {
-            const card = document.createElement('div');
+            const card = document.createElement('a');
+            card.href = "#";
             card.className = 'skeleton-card';
+            card.style.textDecoration = 'none';
+            card.style.display = 'block';
             card.innerHTML = `
                 <div class="skeleton product-image-skeleton"></div>
                 <div class="product-info-skeleton">
@@ -868,16 +870,28 @@ window.openCart = () => {
     else window.location.href = 'cart.html';
 };
 
-window.handleAddToCart = async (product) => {
+window.handleAddToCart = async (product, qty = 1) => {
     if (!currentUser) {
         showAuthModal();
         return;
     }
-    const existing = cartState.find(p => p.id === product.id);
-    if (existing) existing.qty++;
-    else cartState.push({ ...product, qty: 1 });
+    
+    // Check if item with same id, color, and variant already exists
+    const existing = cartState.find(p => p.id === product.id && p.selectedColor === product.selectedColor && p.selectedVariant === product.selectedVariant);
+    
+    if (existing) {
+        existing.qty += qty;
+    } else {
+        cartState.push({ ...product, qty: qty });
+    }
+    
     await updateFirestoreCart();
-    alert('Product added to cart!');
+    
+    if (window.showToast) {
+        window.showToast('Product added to cart!', 'success');
+    } else {
+        alert('Product added to cart!');
+    }
 };
 
 /**
