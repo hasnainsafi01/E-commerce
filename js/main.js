@@ -7,11 +7,11 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { 
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, 
-    signOut, updateProfile 
+    signOut, updateProfile, updatePassword 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, 
-    query, where, getDocs, onSnapshot, orderBy, limit 
+    query, where, getDocs, onSnapshot, orderBy, limit, serverTimestamp, addDoc, deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Firebase Configuration
@@ -534,14 +534,15 @@ function updateNavbarProfileImage(user, firestoreData = null) {
         return;
     }
 
-    // Priority: Firestore photoURL > Auth photoURL > Default Avatar
+    // Priority: Firestore profileImage > Firestore photoURL > Auth photoURL > Default Avatar
     const fullName = firestoreData?.fullName || user.displayName || 'User';
-    const profilePic = firestoreData?.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
+    const profilePic = firestoreData?.profileImage || firestoreData?.photoURL || user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(fullName)}&background=0052cc&color=fff`;
 
     const img = document.createElement('img');
     img.src = profilePic;
     img.className = 'nav-profile-img';
     img.alt = 'Profile';
+    img.style.cssText = 'width: 24px; height: 24px; border-radius: 50%; object-fit: cover;';
     
     iconContainer.replaceWith(img);
 }
@@ -755,9 +756,14 @@ if (settingsForm) {
         const newName = `${fName} ${lName}`;
         const newPass = document.getElementById('new-password').value;
 
+        const saveBtn = document.getElementById('save-settings-btn');
+        const status = document.getElementById('settings-save-status');
+
         try {
-            saveBtn.disabled = true;
-            saveBtn.textContent = 'Updating...';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Updating...';
+            }
 
             // Update Auth Profile
             await updateProfile(currentUser, { displayName: newName });
@@ -771,20 +777,30 @@ if (settingsForm) {
             });
 
             // Password Change
-            if (newPass) {
+            if (newPass && newPass.trim().length >= 6) {
                 await updatePassword(currentUser, newPass);
+            } else if (newPass && newPass.trim().length > 0) {
+                throw new Error('Password must be at least 6 characters');
             }
 
-            status.textContent = 'Profile updated successfully!';
-            status.style.color = 'var(--chenari-green)';
+            if (status) {
+                status.textContent = 'Profile updated successfully!';
+                status.style.color = 'var(--chenari-green)';
+            }
+            window.showToast('Profile updated successfully!', 'success');
             loadUserProfile();
         } catch (error) {
             console.error(error);
-            status.textContent = 'Error: ' + error.message;
-            status.style.color = 'var(--chenari-red)';
+            if (status) {
+                status.textContent = 'Error: ' + error.message;
+                status.style.color = 'var(--chenari-red)';
+            }
+            window.showToast(error.message, 'error');
         } finally {
-            saveBtn.disabled = false;
-            saveBtn.textContent = 'Update Profile';
+            if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Update Profile';
+            }
         }
     });
 }
