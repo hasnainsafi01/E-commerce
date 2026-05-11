@@ -1305,6 +1305,8 @@ async function createOrUpdateUserDoc(user, additionalData = {}) {
 async function handleGoogleLogin() {
     const googleBtn = document.getElementById('google-login');
     const errorMsg = document.getElementById('auth-error');
+    if (!googleBtn || !errorMsg) return;
+
     const originalContent = googleBtn.innerHTML;
     
     try {
@@ -1315,47 +1317,56 @@ async function handleGoogleLogin() {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
         
-        // Prepare user data
-        const names = user.displayName ? user.displayName.split(' ') : ['User', ''];
-        const firstName = names[0];
-        const lastName = names.slice(1).join(' ');
-        
-        const userData = {
-            firstName,
-            lastName,
-            fullName: user.displayName || 'MyMart User',
-            email: user.email,
-            photoURL: user.photoURL,
-            role: 'user',
-            lastLogin: new Date(),
-            updatedAt: new Date()
-        };
-
-        // Create/Update Firestore document
-        const userRef = doc(db, "users", user.uid);
-        const userDoc = await getDoc(userRef);
-        
+        // Create/Update user document with all required fields
         await createOrUpdateUserDoc(user);
+        
+        // Check Role for Redirection
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        const userData = userDoc.exists() ? userDoc.data() : null;
+        
         hideAuthModal();
-        window.showToast('Successfully signed in with Google', 'success');
+        window.showToast(`Welcome back, ${user.displayName || 'User'}!`, 'success');
+
+        // Redirect based on role
+        if (userData && userData.role === 'admin') {
+            window.location.href = 'admin/index.html';
+        } else if (window.location.pathname.includes('cart.html') || window.location.pathname.includes('profile.html')) {
+            // Stay on current page if relevant
+            location.reload();
+        } else {
+            // Optional: Redirect to profile or home
+            // window.location.href = 'profile.html';
+        }
         
     } catch (error) {
-        console.error('Google Login Error:', error);
+        console.error('Google Auth Error:', error);
         
-        let customMessage = 'Google Sign-In failed. Please try again.';
+        let customMessage = 'Authentication failed. Please try again.';
         
-        if (error.code === 'auth/unauthorized-domain') {
-            customMessage = 'Domain unauthorized. Please add this domain to Firebase Authorized Domains in the console.';
-        } else if (error.code === 'auth/popup-closed-by-user') {
-            customMessage = 'Sign-in cancelled. Please keep the popup open to continue.';
-        } else if (error.code === 'auth/network-request-failed') {
-            customMessage = 'Network error. Please check your internet connection.';
+        switch (error.code) {
+            case 'auth/unauthorized-domain':
+                customMessage = 'This domain is not authorized for Google Sign-In. Please add your domain to Firebase Console.';
+                break;
+            case 'auth/popup-closed-by-user':
+                customMessage = 'Sign-in window closed. Please try again.';
+                break;
+            case 'auth/network-request-failed':
+                customMessage = 'Network error. Please check your connection.';
+                break;
+            case 'auth/cancelled-popup-request':
+                customMessage = 'Sign-in request cancelled.';
+                break;
+            case 'auth/internal-error':
+                customMessage = 'An internal error occurred. Please try again later.';
+                break;
         }
         
         errorMsg.innerText = customMessage;
     } finally {
-        googleBtn.innerHTML = originalContent;
-        googleBtn.disabled = false;
+        if (googleBtn) {
+            googleBtn.innerHTML = originalContent;
+            googleBtn.disabled = false;
+        }
     }
 }
 
