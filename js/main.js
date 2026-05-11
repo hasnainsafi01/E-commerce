@@ -91,7 +91,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Map grid IDs → Firestore category names (including homepage special grids)
-const GRID_CATEGORY_MAP = {
     'shoes-grid':            'shoes',
     'bags-grid':             'bags',
     'watches-grid':          'watches',
@@ -102,6 +101,7 @@ const GRID_CATEGORY_MAP = {
     'essentials-grid':       'essentials',
     'trending-grid':         'trending',
     'clothing-grid':         'clothing',
+    'home-grid':             'home',
     'new-arrivals':          'new',   // special handling in loadProducts
     'featured-categories':   null,    // broad mix
 };
@@ -117,9 +117,7 @@ async function loadProducts() {
         const category = GRID_CATEGORY_MAP[gridId];
 
         // Inject skeleton placeholders while Firestore loads
-        if (window.Loader && window.Loader.skeleton) {
-            window.Loader.skeleton(grid, limitCount);
-        }
+        initSkeletons(grid, limitCount);
 
         let q;
         if (category === 'new') {
@@ -435,26 +433,24 @@ async function loadProductDetails() {
     }
 }
 
-function initSkeletons() {
-    const grids = document.querySelectorAll('.product-grid');
+function initSkeletons(targetGrid = null, forcedCount = null) {
+    const grids = targetGrid ? [targetGrid] : document.querySelectorAll('.product-grid');
     grids.forEach(grid => {
+        // Only clear if we are not on a page that might have hardcoded content we want to preserve (unlikely for grids)
         grid.innerHTML = '';
-        const count = grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8;
+        const count = forcedCount || (grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8);
         for (let i = 0; i < count; i++) {
-            const card = document.createElement('a');
-            card.href = "product-details.html";
-            card.className = 'skeleton-card';
-            card.style.textDecoration = 'none';
-            card.style.display = 'block';
+            const card = document.createElement('div');
+            card.className = 'mm-skeleton-card';
             card.innerHTML = `
-                <div class="skeleton product-image-skeleton"></div>
-                <div class="product-info-skeleton">
-                    <div class="skeleton skeleton-cat"></div>
-                    <div class="skeleton skeleton-title"></div>
-                    <div class="skeleton skeleton-price"></div>
-                    <div class="skeleton-actions">
-                        <div class="skeleton skeleton-btn"></div>
-                        <div class="skeleton skeleton-fav"></div>
+                <div class="mm-skeleton mm-skeleton-img"></div>
+                <div class="mm-skeleton-body">
+                    <div class="mm-skeleton mm-skeleton-title" style="width: 40%"></div>
+                    <div class="mm-skeleton mm-skeleton-title" style="width: 80%"></div>
+                    <div class="mm-skeleton mm-skeleton-price" style="width: 30%"></div>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <div class="mm-skeleton" style="height: 36px; flex: 1; border-radius: 8px;"></div>
+                        <div class="mm-skeleton" style="height: 36px; width: 36px; border-radius: 8px;"></div>
                     </div>
                 </div>
             `;
