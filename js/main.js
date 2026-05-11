@@ -678,6 +678,239 @@ if (window.location.pathname.includes('cart.html')) {
 /**
  * User Profile Logic
  */
+async function loadUserProfile() {
+    if (!currentUser) {
+        window.location.href = 'index.html';
+        return;
+    }
+
+    const nameEl = document.getElementById('user-fullname');
+    const emailEl = document.getElementById('user-email');
+    const avatarEl = document.getElementById('user-avatar');
+    const nameInput = document.getElementById('display-name-input');
+    const emailInput = document.getElementById('email-address');
+
+    if (nameEl) nameEl.textContent = currentUser.displayName || 'Chenari Member';
+    if (emailEl) emailEl.textContent = currentUser.email;
+    if (avatarEl && currentUser.photoURL) avatarEl.src = currentUser.photoURL;
+    if (nameInput) nameInput.value = currentUser.displayName || '';
+    if (emailInput) emailInput.value = currentUser.email;
+
+    // Load additional data from Firestore if needed
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    if (userDoc.exists()) {
+        const data = userDoc.data();
+        if (nameEl) nameEl.textContent = data.displayName || nameEl.textContent;
+        if (avatarEl) avatarEl.src = data.photoURL || avatarEl.src;
+        if (nameInput) nameInput.value = data.displayName || nameInput.value;
+    }
+
+    // Load Wishlist & Orders
+    loadUserWishlist();
+    loadUserOrders();
+}
+
+window.showSection = (sectionId) => {
+    document.querySelectorAll('.profile-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+    
+    const targetSection = document.getElementById(`${sectionId}-section`);
+    const targetLink = document.querySelector(`.sidebar-link[data-section="${sectionId}"]`);
+    
+    if (targetSection) targetSection.classList.add('active');
+    if (targetLink) targetLink.classList.add('active');
+};
+
+// Bind Sidebar Links
+document.querySelectorAll('.sidebar-link[data-section]').forEach(link => {
+    link.addEventListener('click', () => {
+        showSection(link.dataset.section);
+    });
+});
+
+// Profile Form Submit
+const settingsForm = document.getElementById('settings-form');
+if (settingsForm) {
+    settingsForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const saveBtn = document.getElementById('save-settings-btn');
+        const status = document.getElementById('settings-save-status');
+        const newName = document.getElementById('display-name-input').value;
+        const newPass = document.getElementById('new-password').value;
+
+        try {
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Updating...';
+
+            // Update Auth Profile
+            await updateProfile(currentUser, { displayName: newName });
+            
+            // Update Firestore
+            await setDoc(doc(db, "users", currentUser.uid), {
+                displayName: newName,
+                updatedAt: new Date().toISOString()
+            }, { merge: true });
+
+            // Password Change
+            if (newPass) {
+                await updatePassword(currentUser, newPass);
+            }
+
+            status.textContent = 'Profile updated successfully!';
+            status.style.color = 'var(--chenari-green)';
+            loadUserProfile();
+        } catch (error) {
+            console.error(error);
+            status.textContent = 'Error: ' + error.message;
+            status.style.color = 'var(--chenari-red)';
+        } finally {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Update Profile';
+        }
+    });
+}
+
+// Avatar Upload
+const avatarInput = document.getElementById('avatar-upload');
+if (avatarInput) {
+    avatarInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const avatarEl = document.getElementById('user-avatar');
+        const originalSrc = avatarEl.src;
+        
+        try {
+            window.showToast('Uploading avatar...', 'info');
+            avatarEl.style.opacity = '0.5';
+
+            // Cloudinary Upload
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('upload_preset', 'ml_default'); // Use your preset or a generic one
+
+            const res = await fetch(`https://api.cloudinary.com/v1_1/dqsvcn94y/image/upload`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            const imageUrl = data.secure_url;
+
+            // Update Auth
+            await updateProfile(currentUser, { photoURL: imageUrl });
+            
+            // Update Firestore
+            await setDoc(doc(db, "users", currentUser.uid), {
+                photoURL: imageUrl
+            }, { merge: true });
+
+            avatarEl.src = imageUrl;
+            window.showToast('Avatar updated!', 'success');
+        } catch (error) {
+            console.error(error);
+            avatarEl.src = originalSrc;
+            window.showToast('Upload failed', 'error');
+        } finally {
+            avatarEl.style.opacity = '1';
+        }
+    });
+}
+
+async function loadUserWishlist() {
+    const grid = document.getElementById('saved-items-grid');
+    if (!grid) return;
+
+    const q = query(collection(db, "wishlist"), where("userId", "==", currentUser.uid));
+    const snap = await getDocs(q);
+    
+    if (snap.empty) {
+        document.getElementById('wishlist-empty').style.display = 'block';
+        grid.innerHTML = '';
+        return;
+    }
+
+    document.getElementById('wishlist-empty').style.display = 'none';
+    grid.innerHTML = '';
+    snap.forEach(docSnap => {
+        const item = docSnap.data();
+        const card = document.createElement('div');
+        card.className = 'product-card';
+        card.innerHTML = `
+            <div class="product-image">
+                <img src="${item.productImage}" alt="${item.productName}">
+            </div>
+            <div class="product-info">
+                <h3>${item.productName}</h3>
+                <div class="product-price">$${parseFloat(item.productPrice).toFixed(2)}</div>
+                <button class="btn btn-outline btn-sm" onclick="removeFromWishlist('${docSnap.id}')" style="width: 100%; margin-top: 1rem;">Remove</button>
+            </div>
+        `;
+        grid.appendChild(card);
+    });
+}
+
+window.removeFromWishlist = async (id) => {
+    await deleteDoc(doc(db, "wishlist", id));
+    loadUserWishlist();
+    window.showToast('Removed from wishlist', 'info');
+};
+
+async function loadUserOrders() {
+    const list = document.getElementById('orders-list');
+    if (!list) return;
+
+    const q = query(collection(db, "orders"), where("userId", "==", currentUser.uid), orderBy("createdAt", "desc"));
+    const snap = await getDocs(q);
+
+    if (snap.empty) return;
+
+    list.innerHTML = '';
+    snap.forEach(docSnap => {
+        const order = docSnap.data();
+        const orderEl = document.createElement('div');
+        orderEl.className = 'order-card';
+        orderEl.style.cssText = `
+            background: white; border: 1px solid #eee; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
+            display: flex; justify-content: space-between; align-items: center;
+        `;
+        
+        const date = order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : 'Recent';
+        
+        orderEl.innerHTML = `
+            <div>
+                <div style="font-weight: 700; color: var(--primary);">#${docSnap.id.substring(0, 8)}</div>
+                <div style="font-size: 0.85rem; color: var(--text-muted);">${date} • ${order.items?.length || 0} items</div>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-weight: 800;">$${parseFloat(order.total || 0).toFixed(2)}</div>
+                <span class="status-badge delivered" style="font-size: 0.7rem; padding: 0.2rem 0.6rem;">${order.status || 'Delivered'}</span>
+            </div>
+        `;
+        list.appendChild(orderEl);
+    });
+}
+
+window.handleLogout = async () => {
+    if (confirm('Are you sure you want to sign out?')) {
+        await signOut(auth);
+        window.location.href = 'index.html';
+    }
+};
+
+// Auto-run if on profile page
+if (window.location.pathname.includes('profile.html')) {
+    onAuthStateChanged(auth, (user) => {
+        if (user) {
+            loadUserProfile();
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+}
+
+/**
+ * User Profile Logic (Legacy - replaced by integrated profile logic above)
+ */
 function injectAuthModal() {
     if (document.getElementById('authModal')) return;
     const modalHTML = `
