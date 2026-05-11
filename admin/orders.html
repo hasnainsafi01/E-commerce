@@ -3,66 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Orders | MyMart Admin</title>
-    <!-- Google Fonts -->
+    <title>Customer Orders | MyMart Admin</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/loader.css">
-    <!-- Critical Security Styles: Prevents UI flicker before JS auth check -->
-    <style>
-        body.admin-loading .admin-sidebar,
-        body.admin-loading .admin-main {
-            display: none !important;
-        }
-    </style>
 </head>
-<body>
-
-    <!-- Startup Loader -->
-    <div id="mm-startup-loader">
-        <div class="mm-loader-brand">
-            <img src="../assets/mymart-logo.png" alt="MyMart" class="mm-loader-logo">
-            <div class="mm-loader-name">MyMart</div>
-            <div class="mm-loader-ring"></div>
-            <div class="mm-loader-subtext">Loading your experience...</div>
-        </div>
-    </div>
-
-    <!-- Page Transition Loader -->
-    <div id="mm-page-loader">
-        <div class="mm-page-loader-inner">
-            <img src="../assets/mymart-logo.png" alt="MyMart">
-            <span class="mm-page-loader-text">Loading...</span>
-            <div class="mm-page-loader-bar"></div>
-        </div>
-    </div>
-
-    <!-- Offline State -->
-    <div id="mm-offline-state">
-        <div class="mm-offline-icon"><i class="fas fa-wifi-slash"></i></div>
-        <div class="mm-offline-title">No Internet Connection</div>
-        <div class="mm-offline-desc">Please check your connection and try again.</div>
-        <button class="mm-offline-btn" onclick="window.location.reload()"><i class="fas fa-redo"></i> Retry</button>
-    </div>
-
-    <!-- Admin Loader Overlay -->
-    <div id="admin-loader">
-        <div class="loader-content">
-            <div class="loader-spinner"></div>
-            <h2>Securing Session</h2>
-            <p>Verifying administrator privileges...</p>
-        </div>
-    </div>
+<body class="admin-body">
 
     <!-- Admin Sidebar -->
     <aside class="admin-sidebar">
-        <a href="index.html" class="sidebar-brand">
+        <div class="sidebar-brand">
             <i class="fas fa-bolt"></i> <span>MyMart Admin</span>
-        </a>
+        </div>
         <nav class="sidebar-nav">
             <a href="index.html" class="nav-link"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
             <a href="add-product.html" class="nav-link"><i class="fas fa-plus-circle"></i> <span>Add Product</span></a>
@@ -72,7 +25,7 @@
             <a href="history.html" class="nav-link"><i class="fas fa-history"></i> <span>History</span></a>
         </nav>
         <div class="sidebar-footer">
-            <a href="../index.html" class="nav-link"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
+            <a href="../index.html" class="nav-link view-site-btn"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
         </div>
     </aside>
 
@@ -81,26 +34,19 @@
         <header class="admin-header">
             <div>
                 <h1>Manage Orders</h1>
-                <p style="color: var(--admin-text-muted);">Process and track customer orders in real-time.</p>
+                <p class="text-muted">Track fulfillment and manage customer purchases.</p>
             </div>
         </header>
 
         <div class="admin-card">
             <div class="card-header">
-                <h3>Customer Orders</h3>
-                <div style="display: flex; gap: 0.5rem;">
-                    <button class="btn btn-outline btn-sm active">All</button>
-                    <button class="btn btn-outline btn-sm">Processing</button>
-                    <button class="btn btn-outline btn-sm">Shipped</button>
-                    <button class="btn btn-outline btn-sm">Delivered</button>
-                </div>
+                <h3>Order History</h3>
             </div>
             <table class="admin-table" id="orders-full-table">
                 <thead>
                     <tr>
                         <th>Order ID</th>
                         <th>Customer</th>
-                        <th>Products</th>
                         <th>Total</th>
                         <th>Date</th>
                         <th>Status</th>
@@ -111,38 +57,10 @@
                     <!-- Dynamic -->
                 </tbody>
             </table>
-            <div id="orders-full-empty" class="empty-state" style="padding: 4rem; display: none;">
-                <i class="fas fa-shopping-cart"></i>
-                <h3>No orders to display</h3>
-            </div>
         </div>
     </main>
 
-    <!-- Order Detail Modal -->
-    <div class="modal-overlay" id="orderDetailModal">
-        <div class="modal-content" style="max-width: 700px;">
-            <div class="card-header">
-                <h3>Order Details</h3>
-                <i class="fas fa-times modal-close" id="close-order-modal"></i>
-            </div>
-            <div style="padding: 1.5rem;" id="order-detail-content">
-                <!-- Dynamic Content -->
-            </div>
-            <div style="padding: 1.5rem; border-top: 1px solid var(--admin-border); display: flex; justify-content: flex-end; gap: 1rem;">
-                <button class="btn btn-outline" id="close-order-btn">Close</button>
-                <select id="update-order-status" style="padding: 0.5rem 1rem; border-radius: var(--radius-md); border: 1px solid var(--admin-border);">
-                    <option value="processing">Mark as Processing</option>
-                    <option value="shipped">Mark as Shipped</option>
-                    <option value="delivered">Mark as Delivered</option>
-                    <option value="cancelled">Cancel Order</option>
-                </select>
-                <button class="btn btn-primary" id="save-order-status">Update Status</button>
-            </div>
-        </div>
-    </div>
-
     <!-- Scripts -->
-    <script src="../js/loader.js"></script>
     <script src="../js/admin-guard.js" type="module"></script>
     <script src="../js/admin.js" type="module"></script>
 </body>

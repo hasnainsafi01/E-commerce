@@ -4,64 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Add Product | MyMart Admin</title>
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS -->
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
-    <link rel="stylesheet" href="../css/loader.css">
-    <!-- Critical Security Styles: Prevents UI flicker before JS auth check -->
-    <style>
-        body.admin-loading .admin-main {
-            display: none !important;
-        }
-    </style>
 </head>
-<body>
-
-    <!-- Startup Loader -->
-    <div id="mm-startup-loader">
-        <div class="mm-loader-brand">
-            <img src="../assets/mymart-logo.png" alt="MyMart" class="mm-loader-logo">
-            <div class="mm-loader-name">MyMart</div>
-            <div class="mm-loader-ring"></div>
-            <div class="mm-loader-subtext">Loading your experience...</div>
-        </div>
-    </div>
-
-    <!-- Page Transition Loader -->
-    <div id="mm-page-loader">
-        <div class="mm-page-loader-inner">
-            <img src="../assets/mymart-logo.png" alt="MyMart">
-            <span class="mm-page-loader-text">Loading...</span>
-            <div class="mm-page-loader-bar"></div>
-        </div>
-    </div>
-
-    <!-- Offline State -->
-    <div id="mm-offline-state">
-        <div class="mm-offline-icon"><i class="fas fa-wifi-slash"></i></div>
-        <div class="mm-offline-title">No Internet Connection</div>
-        <div class="mm-offline-desc">Please check your connection and try again.</div>
-        <button class="mm-offline-btn" onclick="window.location.reload()"><i class="fas fa-redo"></i> Retry</button>
-    </div>
-
-    <!-- Admin Loader Overlay -->
-    <div id="admin-loader">
-        <div class="loader-content">
-            <div class="loader-spinner"></div>
-            <h2>Securing Session</h2>
-            <p>Verifying administrator privileges...</p>
-        </div>
-    </div>
+<body class="admin-body">
 
     <!-- Admin Sidebar -->
     <aside class="admin-sidebar">
-        <a href="index.html" class="sidebar-brand">
+        <div class="sidebar-brand">
             <i class="fas fa-bolt"></i> <span>MyMart Admin</span>
-        </a>
+        </div>
         <nav class="sidebar-nav">
             <a href="index.html" class="nav-link"><i class="fas fa-th-large"></i> <span>Dashboard</span></a>
             <a href="add-product.html" class="nav-link active"><i class="fas fa-plus-circle"></i> <span>Add Product</span></a>
@@ -71,7 +25,7 @@
             <a href="history.html" class="nav-link"><i class="fas fa-history"></i> <span>History</span></a>
         </nav>
         <div class="sidebar-footer">
-            <a href="../index.html" class="nav-link"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
+            <a href="../index.html" class="nav-link view-site-btn"><i class="fas fa-external-link-alt"></i> <span>View Website</span></a>
         </div>
     </aside>
 
@@ -80,7 +34,7 @@
         <header class="admin-header">
             <div>
                 <h1>Add New Product</h1>
-                <p style="color: var(--admin-text-muted);">Expand your inventory with new premium items.</p>
+                <p class="text-muted">Register a new item in your store's inventory.</p>
             </div>
             <button class="btn btn-primary" id="save-product-btn" form="product-form">
                 <i class="fas fa-save"></i> Save Product
@@ -89,67 +43,66 @@
 
         <div class="admin-card">
             <div class="card-header">
-                <h3>Product Details</h3>
+                <h3>Product Information</h3>
             </div>
-            <div style="padding: 2rem;">
+            <div class="card-body">
                 <form id="product-form" class="admin-form">
                     <div class="form-group full-width">
                         <label for="productName">Product Name</label>
-                        <input type="text" id="productName" placeholder="e.g. Minimalist Slate Watch" required>
+                        <input type="text" id="productName" placeholder="e.g. Minimalist Urban Watch" required>
                     </div>
 
-                    <div class="form-group">
-                        <label for="productPrice">Price ($)</label>
-                        <input type="number" id="productPrice" step="0.01" placeholder="0.00" required>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="productPrice">Price ($)</label>
+                            <input type="number" id="productPrice" step="0.01" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="category">Category</label>
+                            <select id="category" required>
+                                <option value="">Select Category</option>
+                                <option value="shoes">Shoes</option>
+                                <option value="bags">Bags</option>
+                                <option value="watches">Watches</option>
+                                <option value="glasses">Glasses</option>
+                                <option value="men">Men's Fashion</option>
+                                <option value="women">Women's Fashion</option>
+                                <option value="electronics">Electronics</option>
+                                <option value="essentials">Essentials</option>
+                                <option value="trending">Trending Now</option>
+                                <option value="clothing">Clothing</option>
+                            </select>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="category">Category</label>
-                        <select id="category" required>
-                            <option value="">Select Category</option>
-                            <option value="trending">Trending Now</option>
-                            <option value="shoes">Shoes</option>
-                            <option value="bags">Bags</option>
-                            <option value="watches">Watches</option>
-                            <option value="glasses">Glasses</option>
-                            <option value="men">Men's Fashion</option>
-                            <option value="women">Women's Fashion</option>
-                            <option value="electronics">Electronics</option>
-                            <option value="essentials">Essentials</option>
-                            <option value="clothing">Clothing</option>
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="stock">Stock Quantity</label>
-                        <input type="number" id="stock" placeholder="100" required>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="productColors">Colors (Comma separated)</label>
-                        <input type="text" id="productColors" placeholder="Slate, Black, Silver">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="stock">Stock Quantity</label>
+                            <input type="number" id="stock" placeholder="100" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="productColors">Colors (Comma separated)</label>
+                            <input type="text" id="productColors" placeholder="Slate, Black, Silver">
+                        </div>
                     </div>
 
                     <div class="form-group full-width">
                         <label for="productDescription">Description</label>
-                        <textarea id="productDescription" rows="5" placeholder="Describe the product details..." required></textarea>
+                        <textarea id="productDescription" rows="5" placeholder="Detailed product description..." required></textarea>
                     </div>
 
                     <div class="form-group full-width">
-                        <label class="upload-dropzone" id="image-dropzone" for="productImage">
-                            <div id="upload-placeholder">
-                                <i class="fas fa-cloud-upload-alt"></i>
-                                <p>Click or drag image to upload to Cloudinary</p>
-                            </div>
-                            <div id="upload-preview" style="display: none; pointer-events: none;">
-                                <img src="" id="preview-img" style="max-width: 100%; max-height: 200px; object-fit: contain; border-radius: 8px;">
-                                <p style="margin-top: 10px; font-size: 0.8rem; color: var(--admin-primary); font-weight: 500;">Image Selected - Click to change</p>
-                            </div>
-                            <input type="file" id="productImage" accept="image/*" style="display: none;">
-                        </label>
-                        <div id="image-preview-container" class="preview-grid">
-                            <!-- Preview Image -->
+                        <label for="productImageUrl">Product Image URL</label>
+                        <input type="url" id="productImageUrl" placeholder="https://example.com/image.jpg" required>
+                        <p class="form-help">Enter a direct link to the product image.</p>
+                    </div>
+
+                    <div class="image-preview-area" id="image-dropzone">
+                        <div style="text-align: center; color: var(--admin-text-muted);">
+                            <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 1rem;"></i>
+                            <p>Image preview will appear here</p>
                         </div>
+                        <img id="preview-img" style="display: none; width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--radius-md);">
                     </div>
                 </form>
             </div>
@@ -157,7 +110,6 @@
     </main>
 
     <!-- Scripts -->
-    <script src="../js/loader.js"></script>
     <script src="../js/admin-guard.js" type="module"></script>
     <script src="../js/admin.js" type="module"></script>
 </body>
