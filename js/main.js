@@ -7,7 +7,7 @@ import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebase
 import { 
     getAuth, onAuthStateChanged, signInWithEmailAndPassword, 
     createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, 
-    signOut, updateProfile, updatePassword 
+    signOut, updateProfile, updatePassword, reauthenticateWithCredential, EmailAuthProvider 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { 
     getFirestore, doc, getDoc, setDoc, updateDoc, collection, 
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Reset navbar image on logout
             updateNavbarProfileImage(null);
             
-            if (window.location.pathname.includes('cart.html')) {
+            if (window.location.pathname.includes('cart.html') || window.location.pathname.includes('profile.html')) {
                 window.location.href = 'index.html';
             }
         }
@@ -751,51 +751,81 @@ const settingsForm = document.getElementById('settings-form');
 if (settingsForm) {
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const fName = document.getElementById('first-name-input').value.trim();
         const lName = document.getElementById('last-name-input').value.trim();
-        const newName = `${fName} ${lName}`;
+        const currentPass = document.getElementById('current-password').value;
         const newPass = document.getElementById('new-password').value;
-
+        const confirmPass = document.getElementById('confirm-password').value;
+        
         const saveBtn = document.getElementById('save-settings-btn');
         const status = document.getElementById('settings-save-status');
+
+        if (!fName || !lName) {
+            window.showToast('First and Last names are required.', 'error');
+            return;
+        }
 
         try {
             if (saveBtn) {
                 saveBtn.disabled = true;
-                saveBtn.textContent = 'Updating...';
+                saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
             }
 
+            // 1. Handle Security Updates (Password Change)
+            if (newPass.trim()) {
+                if (!currentPass) throw new Error('Current password is required to change password.');
+                if (newPass !== confirmPass) throw new Error('New passwords do not match.');
+                if (newPass.length < 6) throw new Error('New password must be at least 6 characters.');
+
+                // Re-authenticate user
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPass);
+                await reauthenticateWithCredential(currentUser, credential);
+                
+                // Update Password
+                await updatePassword(currentUser, newPass);
+                window.showToast('Password updated successfully!', 'success');
+            }
+
+            // 2. Update Profile Info
+            const newFullName = `${fName} ${lName}`;
+            
             // Update Auth Profile
-            await updateProfile(currentUser, { displayName: newName });
+            await updateProfile(currentUser, { displayName: newFullName });
             
             // Update Firestore
             await updateDoc(doc(db, "users", currentUser.uid), {
                 firstName: fName,
                 lastName: lName,
-                fullName: newName,
+                fullName: newFullName,
                 updatedAt: serverTimestamp()
             });
 
-            // Password Change
-            if (newPass && newPass.trim().length >= 6) {
-                await updatePassword(currentUser, newPass);
-            } else if (newPass && newPass.trim().length > 0) {
-                throw new Error('Password must be at least 6 characters');
+            if (status) {
+                status.textContent = 'Changes saved successfully!';
+                status.style.color = 'var(--chenari-green)';
+                setTimeout(() => { status.textContent = ''; }, 3000);
             }
 
-            if (status) {
-                status.textContent = 'Profile updated successfully!';
-                status.style.color = 'var(--chenari-green)';
-            }
             window.showToast('Profile updated successfully!', 'success');
+            
+            // Clear password fields
+            document.getElementById('current-password').value = '';
+            document.getElementById('new-password').value = '';
+            document.getElementById('confirm-password').value = '';
+            
             loadUserProfile();
         } catch (error) {
-            console.error(error);
+            console.error('Profile update error:', error);
+            let msg = error.message;
+            if (error.code === 'auth/wrong-password') msg = 'Incorrect current password.';
+            if (error.code === 'auth/requires-recent-login') msg = 'Please login again to change security settings.';
+            
             if (status) {
-                status.textContent = 'Error: ' + error.message;
+                status.textContent = 'Error: ' + msg;
                 status.style.color = 'var(--chenari-red)';
             }
-            window.showToast(error.message, 'error');
+            window.showToast(msg, 'error');
         } finally {
             if (saveBtn) {
                 saveBtn.disabled = false;
@@ -958,22 +988,20 @@ async function loadUserOrders() {
 }
 
 window.handleLogout = async () => {
-    if (confirm('Are you sure you want to sign out?')) {
+    try {
         await signOut(auth);
+        localStorage.removeItem('sh_cart');
+    } catch (error) {
+        console.error('Logout error:', error);
+        window.showToast("Error logging out. Please try again.", "error");
+    } finally {
+        hideLogoutModal();
+        cleanupAllOverlays();
         window.location.href = 'index.html';
     }
 };
 
-// Auto-run if on profile page
-if (window.location.pathname.includes('profile.html')) {
-    onAuthStateChanged(auth, (user) => {
-        if (user) {
-            loadUserProfile();
-        } else {
-            window.location.href = 'index.html';
-        }
-    });
-}
+// Auto-run if on profile page - removed redundant listener (handled globally)
 
 /**
  * User Profile Logic (Legacy - replaced by integrated profile logic above)
@@ -1370,20 +1398,7 @@ async function handleGoogleLogin() {
     }
 }
 
-async function handleLogout() {
-    try {
-        await signOut(auth);
-        localStorage.removeItem('sh_cart');
-    } catch (error) {
-        console.error('Logout error:', error);
-        window.showToast("Error logging out. Please try again.", "error");
-    } finally {
-        // ALWAYS clean up overlays regardless of success/failure
-        hideLogoutModal();
-        cleanupAllOverlays();
-        window.location.href = 'index.html';
-    }
-}
+// handleLogout logic handled above as window.handleLogout
 
 async function syncCartWithFirestore(uid) {
     onSnapshot(doc(db, "cart", uid), (doc) => {
