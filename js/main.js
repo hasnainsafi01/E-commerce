@@ -546,7 +546,137 @@ function updateNavbarProfileImage(user, firestoreData = null) {
 }
 
 /**
- * Auth Modal Logic
+ * Cart Rendering (Page-specific)
+ */
+async function renderCart() {
+    const list = document.getElementById('cart-items-list');
+    if (!list) return;
+
+    if (!cartState || cartState.length === 0) {
+        list.innerHTML = `
+            <div style="text-align: center; padding: 4rem 2rem; background: #fafbfc; border-radius: var(--radius-lg); border: 1px dashed #ddd;">
+                <div style="font-size: 4rem; color: #ddd; margin-bottom: 1.5rem;"><i class="fas fa-shopping-bag"></i></div>
+                <h3 style="font-size: 1.5rem; margin-bottom: 0.5rem;">Your bag is empty</h3>
+                <p style="color: var(--text-muted); margin-bottom: 2rem;">Looks like you haven't added anything to your bag yet.</p>
+                <a href="index.html" class="btn btn-primary" style="padding: 1rem 2rem;">Start Shopping</a>
+            </div>
+        `;
+        updateSummary(0, 0);
+        return;
+    }
+
+    list.innerHTML = '';
+    let subtotal = 0;
+    let itemCount = 0;
+
+    cartState.forEach((item, index) => {
+        const itemTotal = parseFloat(item.productPrice || item.price || 0) * (item.qty || 1);
+        subtotal += itemTotal;
+        itemCount += (item.qty || 1);
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cart-item-card';
+        itemEl.style.cssText = `
+            display: grid;
+            grid-template-columns: 120px 1fr 140px 100px;
+            align-items: center;
+            gap: 2rem;
+            padding: 1.5rem;
+            background: var(--white);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        `;
+
+        itemEl.innerHTML = `
+            <img src="${item.productImage || item.imageUrl || ''}" style="width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-sm);">
+            <div>
+                <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.3rem;">${item.productName || item.name}</h3>
+                <p style="font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;">${item.category || 'Premium Selection'}</p>
+                <div style="display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.85rem;">
+                    ${item.selectedColor ? `<span style="background: #f4f5f7; padding: 0.2rem 0.6rem; border-radius: 4px;">Color: ${item.selectedColor}</span>` : ''}
+                    ${item.selectedVariant ? `<span style="background: #f4f5f7; padding: 0.2rem 0.6rem; border-radius: 4px;">Variant: ${item.selectedVariant}</span>` : ''}
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; border: 1.5px solid #eee; border-radius: 8px; overflow: hidden; width: fit-content; margin: 0 auto;">
+                <button onclick="updateCartQty(${index}, -1)" style="padding: 0.5rem 0.8rem; background: #fff; border: none; cursor: pointer; font-weight: 700;">-</button>
+                <span style="padding: 0 0.5rem; font-weight: 700; min-width: 30px; text-align: center;">${item.qty}</span>
+                <button onclick="updateCartQty(${index}, 1)" style="padding: 0.5rem 0.8rem; background: #fff; border: none; cursor: pointer; font-weight: 700;">+</button>
+            </div>
+            <div style="text-align: right;">
+                <div style="font-weight: 800; font-size: 1.15rem; margin-bottom: 0.5rem;">$${itemTotal.toFixed(2)}</div>
+                <button onclick="removeFromCart(${index})" style="color: #ff4d4d; border: none; background: none; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Remove</button>
+            </div>
+        `;
+        list.appendChild(itemEl);
+    });
+
+    updateSummary(subtotal, itemCount);
+}
+
+function updateSummary(subtotal, count) {
+    const subEl = document.getElementById('summary-subtotal');
+    const totEl = document.getElementById('summary-total');
+    const countEl = document.getElementById('summary-count');
+
+    if (subEl) subEl.textContent = `$${subtotal.toFixed(2)}`;
+    if (totEl) totEl.textContent = `$${subtotal.toFixed(2)}`;
+    if (countEl) countEl.textContent = `(${count} item${count !== 1 ? 's' : ''})`;
+}
+
+window.updateCartQty = async (index, delta) => {
+    if (!cartState[index]) return;
+    let newQty = cartState[index].qty + delta;
+    if (newQty < 1) return;
+    if (newQty > 10) {
+        window.showToast('Max limit reached', 'warning');
+        return;
+    }
+    cartState[index].qty = newQty;
+    await updateFirestoreCart();
+    renderCart();
+};
+
+window.removeFromCart = async (index) => {
+    cartState.splice(index, 1);
+    await updateFirestoreCart();
+    renderCart();
+    window.showToast('Item removed from bag', 'info');
+};
+
+window.clearCart = async () => {
+    if (confirm('Clear all items from your bag?')) {
+        cartState = [];
+        await updateFirestoreCart();
+        renderCart();
+        window.showToast('Bag cleared', 'info');
+    }
+};
+
+window.handleCheckout = () => {
+    if (cartState.length === 0) return;
+    window.showToast('Redirecting to secure checkout...', 'success');
+    setTimeout(() => {
+        window.location.href = 'checkout.html';
+    }, 1500);
+};
+
+// Auto-run if on cart page
+if (window.location.pathname.includes('cart.html')) {
+    // Wait for auth before rendering
+    onAuthStateChanged(auth, (user) => {
+        if (!user) {
+            window.location.href = 'index.html';
+        } else {
+            // Give a tiny delay to ensure cartState is synced from firestore (handleLoginSync)
+            setTimeout(renderCart, 500);
+        }
+    });
+}
+
+/**
+ * User Profile Logic
  */
 function injectAuthModal() {
     if (document.getElementById('authModal')) return;
@@ -929,8 +1059,11 @@ async function updateFirestoreCart() {
 }
 
 window.openCart = () => {
-    if (!currentUser) showAuthModal();
-    else window.location.href = 'cart.html';
+    if (!currentUser) {
+        if (window.showAuthModal) window.showAuthModal();
+        return;
+    }
+    window.location.href = 'cart.html';
 };
 
 window.handleAddToCart = async (product, qty = 1) => {
@@ -968,7 +1101,7 @@ window.handleBuyNow = async (product) => {
 };
 
 /**
- * Wishlist Logic
+ * Navigation Actions
  */
 window.handleAddToWishlist = async (productId) => {
     if (!currentUser) {
