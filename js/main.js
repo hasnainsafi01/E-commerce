@@ -1155,37 +1155,61 @@ async function handleAuthSubmit(e) {
     errorMsg.innerText = '';
 
     try {
+        const submitBtn = document.getElementById('auth-submit-btn');
+        const originalText = submitBtn.innerText;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
         if (isSignUpMode) {
-            const firstName = document.getElementById('first-name').value;
-            const lastName = document.getElementById('last-name').value;
+            const firstName = document.getElementById('first-name').value.trim();
+            const lastName = document.getElementById('last-name').value.trim();
             const confirmPassword = document.getElementById('auth-confirm-password').value;
 
-            if (!firstName || !lastName) throw new Error('Please enter your full name');
+            if (!firstName || !lastName) throw new Error('First and Last names are required');
             if (password !== confirmPassword) throw new Error('Passwords do not match');
             if (password.length < 6) throw new Error('Password must be at least 6 characters');
 
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
             const fullName = `${firstName} ${lastName}`;
+            
             await updateProfile(user, { displayName: fullName });
+            
             await setDoc(doc(db, "users", user.uid), {
-                firstName, lastName, fullName, email,
-                photoURL: null, role: 'user', createdAt: new Date(), lastLogin: new Date()
+                firstName, 
+                lastName, 
+                fullName, 
+                email,
+                photoURL: null, 
+                role: 'user', 
+                createdAt: serverTimestamp(), 
+                lastLogin: serverTimestamp()
             });
+
+            window.showToast(`Welcome to Chenari, ${firstName}!`, 'success');
         } else {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
 
-            // Fetch user role from Firestore to determine redirect
+            // Update last login
+            await updateDoc(doc(db, "users", user.uid), {
+                lastLogin: serverTimestamp()
+            }).catch(() => {}); // Ignore if doc doesn't exist yet (e.g. legacy users)
+
+            window.showToast('Login successful', 'success');
+
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists() && userDoc.data().role === 'admin') {
                 window.location.href = 'admin/index.html';
-                return; // Stop further execution
+                return;
             }
         }
         hideAuthModal();
     } catch (error) {
-        errorMsg.innerText = error.message;
+        errorMsg.innerText = error.message.replace('Firebase: ', '');
+        const submitBtn = document.getElementById('auth-submit-btn');
+        submitBtn.disabled = false;
+        submitBtn.innerText = isSignUpMode ? 'Sign Up' : 'Login';
     }
 }
 
