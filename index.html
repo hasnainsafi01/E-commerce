@@ -11,8 +11,36 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom CSS -->
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/loader.css">
 </head>
 <body>
+
+    <!-- Startup Loader -->
+    <div id="mm-startup-loader">
+        <div class="mm-loader-brand">
+            <img src="assets/mymart-logo.png" alt="MyMart" class="mm-loader-logo">
+            <div class="mm-loader-name">MyMart</div>
+            <div class="mm-loader-ring"></div>
+            <div class="mm-loader-subtext">Loading your experience...</div>
+        </div>
+    </div>
+
+    <!-- Page Transition Loader -->
+    <div id="mm-page-loader">
+        <div class="mm-page-loader-inner">
+            <img src="assets/mymart-logo.png" alt="MyMart">
+            <span class="mm-page-loader-text">Loading...</span>
+            <div class="mm-page-loader-bar"></div>
+        </div>
+    </div>
+
+    <!-- Offline State -->
+    <div id="mm-offline-state">
+        <div class="mm-offline-icon"><i class="fas fa-wifi-slash"></i></div>
+        <div class="mm-offline-title">No Internet Connection</div>
+        <div class="mm-offline-desc">Please check your connection and try again.</div>
+        <button class="mm-offline-btn" onclick="window.location.reload()"><i class="fas fa-redo"></i> Retry</button>
+    </div>
 
     <!-- Sticky Navbar -->
     <nav class="navbar">
@@ -263,6 +291,7 @@
     </footer>
 
     <!-- Scripts -->
+    <script src="js/loader.js"></script>
     <script src="js/main.js" type="module"></script>
 </body>
 </html>

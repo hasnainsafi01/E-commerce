@@ -223,6 +223,7 @@ function setupAddProduct() {
         const btn = document.getElementById('save-product-btn');
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        if (window.Loader && window.Loader.show) window.Loader.show('Saving Product...');
 
         try {
             // 1. Upload to Cloudinary
@@ -270,6 +271,7 @@ function setupAddProduct() {
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fas fa-save"></i> Save Product';
+            if (window.Loader && window.Loader.hide) window.Loader.hide();
         }
     });
 }
@@ -303,9 +305,11 @@ async function loadManageProducts() {
         `).join('');
     };
 
+    if (window.Loader && window.Loader.show) window.Loader.show('Loading Products...');
     onSnapshot(collection(db, "products"), (snap) => {
         allProducts = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         applyFilters();
+        if (window.Loader && window.Loader.hide) window.Loader.hide();
     });
 
     const applyFilters = () => {

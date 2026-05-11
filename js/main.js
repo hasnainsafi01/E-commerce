@@ -109,6 +109,11 @@ async function loadProducts() {
         const limitCount = grid.hasAttribute('data-count') ? parseInt(grid.getAttribute('data-count')) : 8;
         const category = GRID_CATEGORY_MAP[gridId];
 
+        // Inject skeleton placeholders while Firestore loads
+        if (window.Loader && window.Loader.skeleton) {
+            window.Loader.skeleton(grid, limitCount);
+        }
+
         let q;
         if (category === 'new') {
             q = query(collection(db, 'products'), orderBy('createdAt', 'desc'), limit(limitCount));
