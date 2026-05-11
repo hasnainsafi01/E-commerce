@@ -151,9 +151,20 @@ function setupAddProduct() {
     const preview = document.getElementById('upload-preview');
     const previewImg = document.getElementById('preview-img');
 
-    if (!dropzone || !fileInput || !form) return;
+    if (!dropzone || !fileInput || !form || !placeholder || !preview || !previewImg) {
+        console.warn('[setupAddProduct] Missing DOM elements. Aborting.');
+        return;
+    }
 
     let currentPreviewUrl = null;
+
+    const showPreview = (url) => {
+        previewImg.src = url;
+        placeholder.style.display = 'none';
+        preview.style.display = 'block';
+        preview.style.width = '100%';
+        preview.style.textAlign = 'center';
+    };
 
     const handleFileSelect = (file) => {
         if (!file) return;
@@ -173,15 +184,36 @@ function setupAddProduct() {
 
         // Show Preview
         currentPreviewUrl = URL.createObjectURL(file);
-        previewImg.src = currentPreviewUrl;
-        placeholder.style.display = 'none';
-        preview.style.display = 'block';
+        showPreview(currentPreviewUrl);
+        console.log('[setupAddProduct] Preview updated for file:', file.name);
         
         window.showToast("Image selected successfully!");
     };
 
+    // Native file input change handler
     fileInput.addEventListener('change', (e) => {
+        console.log('[setupAddProduct] file input change event fired');
         handleFileSelect(e.target.files[0]);
+    });
+
+    // Drag & Drop support
+    dropzone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = 'var(--admin-primary)';
+        dropzone.style.background = 'rgba(0, 82, 204, 0.05)';
+    });
+    dropzone.addEventListener('dragleave', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = '';
+        dropzone.style.background = '';
+    });
+    dropzone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropzone.style.borderColor = '';
+        dropzone.style.background = '';
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
     });
 
     form.addEventListener('submit', async (e) => {
