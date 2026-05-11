@@ -82,14 +82,13 @@
                     <input type="file" id="avatar-upload" hidden accept="image/*">
                 </div>
                 <div class="profile-meta">
-                    <h1 id="user-fullname">Premium Member</h1>
-                    <p id="user-email">guest@chenari.com</p>
-                    <div class="badge-row">
-                        <span class="badge badge-light" id="member-since">Member since 2024</span>
-                        <span class="badge badge-gold">Chenari Elite</span>
+                    <h1 id="user-fullname">...</h1>
+                    <p id="user-email">...</p>
+                    <div class="badge-row" id="user-badges">
+                        <!-- Dynamic Badges -->
                     </div>
                 </div>
-                <button class="btn btn-primary" style="margin-left: auto;" onclick="showSection('settings')">Edit Profile</button>
+                <button class="btn btn-primary" id="edit-profile-main-btn" style="margin-left: auto;" onclick="showSection('settings')">Edit Profile</button>
             </div>
         </section>
 
@@ -126,13 +125,8 @@
                         <a href="#" class="view-all">Full History</a>
                     </div>
                     <div class="orders-list" id="orders-list">
-                        <!-- Empty State -->
-                        <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: #fafbfc; border-radius: var(--radius-lg);">
-                            <div style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"><i class="fas fa-box-open"></i></div>
-                            <h3 style="margin-bottom: 0.5rem;">No orders found</h3>
-                            <p style="color: var(--text-muted);">You haven't placed any orders yet. Ready to start?</p>
-                            <a href="index.html" class="btn btn-primary" style="margin-top: 1.5rem; padding: 0.8rem 2rem;">Shop Now</a>
-                        </div>
+                        <!-- Loading State -->
+                        <div class="skeleton" style="height: 100px; margin-bottom: 1rem; border-radius: 12px;"></div>
                     </div>
                 </section>
 
@@ -144,7 +138,7 @@
                     <div class="product-grid" id="saved-items-grid">
                         <!-- Skeletons -->
                     </div>
-                    <div class="empty-state" id="wishlist-empty" style="text-align: center; padding: 4rem 2rem;">
+                    <div class="empty-state" id="wishlist-empty" style="display: none; text-align: center; padding: 4rem 2rem;">
                         <i class="far fa-heart" style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"></i>
                         <h3>Wishlist is empty</h3>
                         <p style="color: var(--text-muted);">Save your favorite items here to track them easily.</p>
@@ -159,9 +153,13 @@
                     <div class="settings-card">
                         <form id="settings-form" class="settings-form">
                             <div class="form-grid">
-                                <div class="form-group full-width">
-                                    <label for="display-name-input">Full Name</label>
-                                    <input type="text" id="display-name-input" placeholder="Your Name" required>
+                                <div class="form-group">
+                                    <label for="first-name-input">First Name</label>
+                                    <input type="text" id="first-name-input" placeholder="First Name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="last-name-input">Last Name</label>
+                                    <input type="text" id="last-name-input" placeholder="Last Name" required>
                                 </div>
                                 <div class="form-group full-width">
                                     <label for="email-address">Email Address (Primary)</label>
@@ -182,6 +180,20 @@
                                 <span id="settings-save-status" style="margin-left: 1rem; font-size: 0.9rem;"></span>
                             </div>
                         </form>
+                    </div>
+                </section>
+
+                <!-- Browsing History -->
+                <section id="cart-history-section" class="profile-section">
+                    <div class="section-header">
+                        <h2 style="font-weight: 800;">Browsing History</h2>
+                    </div>
+                    <div id="history-list" class="orders-list">
+                         <div class="empty-state" style="text-align: center; padding: 4rem 2rem; background: #fafbfc; border-radius: var(--radius-lg);">
+                            <div style="font-size: 3rem; color: #ddd; margin-bottom: 1rem;"><i class="fas fa-history"></i></div>
+                            <h3>No history yet</h3>
+                            <p style="color: var(--text-muted);">Your recently viewed items will appear here.</p>
+                        </div>
                     </div>
                 </section>
 

@@ -700,9 +700,22 @@ async function loadUserProfile() {
     const userDoc = await getDoc(doc(db, "users", currentUser.uid));
     if (userDoc.exists()) {
         const data = userDoc.data();
-        if (nameEl) nameEl.textContent = data.displayName || nameEl.textContent;
+        if (nameEl) nameEl.textContent = data.fullName || data.displayName || nameEl.textContent;
         if (avatarEl) avatarEl.src = data.photoURL || avatarEl.src;
-        if (nameInput) nameInput.value = data.displayName || nameInput.value;
+        
+        const fNameInput = document.getElementById('first-name-input');
+        const lNameInput = document.getElementById('last-name-input');
+        if (fNameInput) fNameInput.value = data.firstName || '';
+        if (lNameInput) lNameInput.value = data.lastName || '';
+
+        const badgeContainer = document.getElementById('user-badges');
+        if (badgeContainer) {
+            const since = data.createdAt?.toDate ? data.createdAt.toDate().getFullYear() : '2024';
+            badgeContainer.innerHTML = `
+                <span class="badge badge-light">Member since ${since}</span>
+                <span class="badge badge-gold">Chenari Elite</span>
+            `;
+        }
     }
 
     // Load Wishlist & Orders
@@ -733,9 +746,9 @@ const settingsForm = document.getElementById('settings-form');
 if (settingsForm) {
     settingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const saveBtn = document.getElementById('save-settings-btn');
-        const status = document.getElementById('settings-save-status');
-        const newName = document.getElementById('display-name-input').value;
+        const fName = document.getElementById('first-name-input').value.trim();
+        const lName = document.getElementById('last-name-input').value.trim();
+        const newName = `${fName} ${lName}`;
         const newPass = document.getElementById('new-password').value;
 
         try {
@@ -746,10 +759,12 @@ if (settingsForm) {
             await updateProfile(currentUser, { displayName: newName });
             
             // Update Firestore
-            await setDoc(doc(db, "users", currentUser.uid), {
-                displayName: newName,
-                updatedAt: new Date().toISOString()
-            }, { merge: true });
+            await updateDoc(doc(db, "users", currentUser.uid), {
+                firstName: fName,
+                lastName: lName,
+                fullName: newName,
+                updatedAt: serverTimestamp()
+            });
 
             // Password Change
             if (newPass) {
@@ -1156,7 +1171,6 @@ async function handleAuthSubmit(e) {
 
     try {
         const submitBtn = document.getElementById('auth-submit-btn');
-        const originalText = submitBtn.innerText;
         submitBtn.disabled = true;
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
@@ -1175,29 +1189,14 @@ async function handleAuthSubmit(e) {
             
             await updateProfile(user, { displayName: fullName });
             
-            await setDoc(doc(db, "users", user.uid), {
-                firstName, 
-                lastName, 
-                fullName, 
-                email,
-                photoURL: null, 
-                role: 'user', 
-                createdAt: serverTimestamp(), 
-                lastLogin: serverTimestamp()
-            });
-
+            await createOrUpdateUserDoc(user, { firstName, lastName, fullName, email });
+            
             window.showToast(`Welcome to Chenari, ${firstName}!`, 'success');
         } else {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            window.showToast('Logged in successfully', 'success');
+            
             const user = userCredential.user;
-
-            // Update last login
-            await updateDoc(doc(db, "users", user.uid), {
-                lastLogin: serverTimestamp()
-            }).catch(() => {}); // Ignore if doc doesn't exist yet (e.g. legacy users)
-
-            window.showToast('Login successful', 'success');
-
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists() && userDoc.data().role === 'admin') {
                 window.location.href = 'admin/index.html';
@@ -1210,6 +1209,33 @@ async function handleAuthSubmit(e) {
         const submitBtn = document.getElementById('auth-submit-btn');
         submitBtn.disabled = false;
         submitBtn.innerText = isSignUpMode ? 'Sign Up' : 'Login';
+    }
+}
+
+async function createOrUpdateUserDoc(user, additionalData = {}) {
+    const userRef = doc(db, "users", user.uid);
+    const snap = await getDoc(userRef);
+    
+    const baseData = {
+        fullName: user.displayName || 'User',
+        email: user.email,
+        photoURL: user.photoURL || null,
+        role: 'user',
+        lastLogin: serverTimestamp(),
+        updatedAt: serverTimestamp()
+    };
+
+    if (!snap.exists()) {
+        await setDoc(userRef, {
+            ...baseData,
+            ...additionalData,
+            createdAt: serverTimestamp()
+        });
+    } else {
+        await updateDoc(userRef, {
+            ...baseData,
+            ...additionalData
+        });
     }
 }
 
@@ -1246,19 +1272,9 @@ async function handleGoogleLogin() {
         const userRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userRef);
         
-        if (!userDoc.exists()) {
-            userData.createdAt = new Date();
-            await setDoc(userRef, userData);
-        } else {
-            await updateDoc(userRef, {
-                ...userData,
-                lastLogin: new Date()
-            });
-        }
-
+        await createOrUpdateUserDoc(user);
         hideAuthModal();
-        // Feedback
-        console.log('Google login successful');
+        window.showToast('Successfully signed in with Google', 'success');
         
     } catch (error) {
         console.error('Google Login Error:', error);
