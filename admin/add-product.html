@@ -92,17 +92,19 @@
                     </div>
 
                     <div class="form-group full-width">
-                        <label for="productImageUrl">Product Image URL</label>
-                        <input type="url" id="productImageUrl" placeholder="https://example.com/image.jpg" required>
-                        <p class="form-help">Enter a direct link to the product image.</p>
-                    </div>
-
-                    <div class="image-preview-area" id="image-dropzone">
-                        <div style="text-align: center; color: var(--admin-text-muted);">
-                            <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 1rem;"></i>
-                            <p>Image preview will appear here</p>
-                        </div>
-                        <img id="preview-img" style="display: none; width: 100%; max-height: 300px; object-fit: contain; border-radius: var(--radius-md);">
+                        <label>Product Image</label>
+                        <label class="upload-dropzone" id="image-dropzone" for="productImage">
+                            <div id="upload-placeholder">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Click to select image from your device</p>
+                                <span style="font-size: 0.8rem; opacity: 0.7;">(JPG, PNG or WEBP)</span>
+                            </div>
+                            <div id="upload-preview" style="display: none;">
+                                <img src="" id="preview-img" style="max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px;">
+                                <p style="margin-top: 10px; font-size: 0.8rem; color: var(--admin-primary); font-weight: 500;">Image Selected - Click to change</p>
+                            </div>
+                            <input type="file" id="productImage" accept="image/*" style="display: none;" required>
+                        </label>
                     </div>
                 </form>
             </div>
