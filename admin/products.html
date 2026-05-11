@@ -9,7 +9,14 @@
     <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="../css/admin.css">
 </head>
-<body class="admin-body">
+<body class="admin-body admin-loading">
+
+    <!-- Admin Loader Overlay -->
+    <div id="admin-loader" style="position: fixed; inset: 0; background: #fff; z-index: 100000; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 1.5rem;">
+        <div style="width: 50px; height: 50px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+        <p style="font-family: 'Outfit', sans-serif; font-weight: 600; color: var(--primary); letter-spacing: 1px;">VERIFYING PERMISSIONS...</p>
+        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+    </div>
 
     <!-- Admin Sidebar -->
     <aside class="admin-sidebar">
@@ -45,18 +52,16 @@
                 <i class="fas fa-search"></i>
                 <input type="text" id="product-search" placeholder="Search by name or category...">
             </div>
-            <select id="category-filter">
+            <select class="btn btn-outline" id="category-filter" style="padding: 0.6rem 1.2rem; border-radius: 8px;">
                 <option value="all">All Categories</option>
                 <option value="shoes">Shoes</option>
                 <option value="bags">Bags</option>
                 <option value="watches">Watches</option>
                 <option value="glasses">Glasses</option>
-                <option value="men">Men's Fashion</option>
-                <option value="women">Women's Fashion</option>
+                <option value="men">Men</option>
+                <option value="women">Women</option>
                 <option value="electronics">Electronics</option>
-                <option value="essentials">Essentials</option>
-                <option value="trending">Trending Now</option>
-                <option value="clothing">Clothing</option>
+                <option value="home">Home</option>
             </select>
         </div>
 

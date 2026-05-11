@@ -336,3 +336,123 @@ body.admin-loading .admin-main {
     .admin-form { grid-template-columns: 1fr; }
     .form-group.full-width { grid-column: auto; }
 }
+/* ─── Admin Modals ─── */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(9, 30, 66, 0.54);
+    backdrop-filter: blur(4px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 1.5rem;
+}
+
+.admin-modal {
+    background: #fff;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 600px;
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    animation: modal-fade-up 0.3s ease;
+}
+
+@keyframes modal-fade-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.modal-header {
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid var(--admin-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-family: 'Outfit', sans-serif;
+    color: var(--admin-text);
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--admin-text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.modal-close:hover { color: var(--admin-primary); }
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    padding: 1.25rem 2rem;
+    border-top: 1px solid var(--admin-border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    background: #f9fafb;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+}
+
+.order-detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.detail-item label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 700;
+    color: var(--admin-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.detail-item p {
+    margin: 0;
+    font-weight: 600;
+    color: var(--admin-text);
+}
+
+.order-items-list {
+    border: 1px solid var(--admin-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.order-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--admin-border);
+}
+
+.order-item:last-child { border-bottom: none; }
+
+.order-item img {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+}
+
+.order-item-info { flex: 1; }
+.order-item-info h4 { margin: 0; font-size: 0.875rem; }
+.order-item-info span { font-size: 0.75rem; color: var(--admin-text-muted); }
+
+.order-item-price { font-weight: 700; font-size: 0.875rem; }

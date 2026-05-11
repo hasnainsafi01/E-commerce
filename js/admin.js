@@ -128,6 +128,11 @@ function setupAddProduct() {
         const btn = form.querySelector('button[type="submit"]');
         const originalText = btn.innerHTML;
         
+        if (!selectedFile) {
+            showToast("Please select a product image", "error");
+            return;
+        }
+
         // Step 1: Loading State
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving Product...';
@@ -145,21 +150,24 @@ function setupAddProduct() {
 
             // Step 3: Save to Firestore
             const product = {
-                name: document.getElementById('productName').value,
-                price: parseFloat(document.getElementById('productPrice').value),
+                productName: document.getElementById('productName').value.trim(),
+                productPrice: parseFloat(document.getElementById('productPrice').value),
                 category: document.getElementById('category').value,
-                stock: parseInt(document.getElementById('stock').value),
-                description: document.getElementById('productDescription').value,
+                stock: parseInt(document.getElementById('stock').value) || 0,
+                productDescription: document.getElementById('productDescription').value.trim(),
                 colors: document.getElementById('productColors').value.split(',').map(c => c.trim()).filter(c => c),
-                imageUrl: uploadData.secure_url,
+                sizes: document.getElementById('productSizes').value.split(',').map(s => s.trim()).filter(s => s),
+                variants: document.getElementById('productVariants').value.split(',').map(v => v.trim()).filter(v => v),
+                productImage: uploadData.secure_url,
+                imageUrl: uploadData.secure_url, // Compatibility
                 createdAt: Timestamp.now()
             };
 
             await addDoc(collection(db, "products"), product);
-            await logAction('added product', product.name);
+            await logAction('added product', product.productName);
 
             // Step 4: Success Message & Reset
-            showToast("Product successfully saved on website!");
+            showToast("Product successfully added to " + product.category);
             form.reset();
             selectedFile = null;
             preview.style.display = 'none';
@@ -182,25 +190,33 @@ function setupManageProducts() {
     const filter = document.getElementById('category-filter');
     if (!table) return;
 
-    onSnapshot(collection(db, "products"), (snap) => {
+    onSnapshot(query(collection(db, "products"), orderBy("createdAt", "desc")), (snap) => {
         const products = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
         const applyFilters = () => {
             let filtered = products;
             if (filter?.value !== 'all') filtered = filtered.filter(p => p.category === filter.value);
             if (search?.value) {
                 const s = search.value.toLowerCase();
-                filtered = filtered.filter(p => p.name.toLowerCase().includes(s) || p.category.toLowerCase().includes(s));
+                filtered = filtered.filter(p => (p.productName || p.name || '').toLowerCase().includes(s) || (p.category || '').toLowerCase().includes(s));
             }
             table.innerHTML = filtered.map(p => `
                 <tr>
-                    <td><img src="${p.imageUrl}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;"></td>
-                    <td><strong>${p.name}</strong></td>
-                    <td><span class="badge">${p.category}</span></td>
-                    <td>$${(p.price || 0).toFixed(2)}</td>
-                    <td>${p.stock}</td>
+                    <td><img src="${p.productImage || p.imageUrl}" style="width: 48px; height: 48px; object-fit: cover; border-radius: 8px; border: 1px solid #eee;"></td>
                     <td>
-                        <button class="btn-icon" onclick="editProduct('${p.id}')"><i class="fas fa-edit"></i></button>
-                        <button class="btn-icon delete" onclick="deleteProduct('${p.id}', '${p.name.replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+                        <div style="font-weight: 700; color: var(--admin-text);">${p.productName || p.name}</div>
+                        <div style="font-size: 0.75rem; color: var(--admin-text-muted);">ID: ${p.id.substring(0,8)}</div>
+                    </td>
+                    <td><span class="badge" style="background: #f0f2f5; color: var(--admin-text);">${p.category}</span></td>
+                    <td><strong style="color: var(--admin-primary);">$${parseFloat(p.productPrice || p.price || 0).toFixed(2)}</strong></td>
+                    <td>
+                        <div style="font-weight: 600; color: ${p.stock < 10 ? '#cf1322' : 'inherit'}">${p.stock || 0}</div>
+                        ${p.stock < 10 ? '<span style="font-size: 0.65rem; color: #cf1322; font-weight: 700; text-transform: uppercase;">Low Stock</span>' : ''}
+                    </td>
+                    <td>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn-icon" onclick="editProduct('${p.id}')" title="Edit"><i class="fas fa-edit"></i></button>
+                            <button class="btn-icon delete" onclick="deleteProduct('${p.id}', '${(p.productName || p.name || 'Product').replace(/'/g, "\\'")}')" title="Delete"><i class="fas fa-trash"></i></button>
+                        </div>
                     </td>
                 </tr>`).join('');
         };
@@ -250,20 +266,239 @@ async function logAction(action, entity) {
 }
 
 window.deleteProduct = async (id, name) => {
-    if (confirm(`Delete "${name}"?`)) {
+    if (confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`)) {
         await deleteDoc(doc(db, "products", id));
         await logAction('deleted product', name);
         showToast("Product deleted successfully.");
     }
 };
 
+// ─── Modal System ────────────────────────────────────────────────────────────
+function injectModalContainer() {
+    if (document.getElementById('admin-modal-overlay')) return;
+    const modalHTML = `
+        <div class="modal-overlay" id="admin-modal-overlay">
+            <div class="admin-modal" id="admin-modal-content">
+                <!-- Dynamic Content -->
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    document.getElementById('admin-modal-overlay').addEventListener('click', (e) => {
+        if (e.target.id === 'admin-modal-overlay') closeModal();
+    });
+}
+
+window.closeModal = () => {
+    const modal = document.getElementById('admin-modal-overlay');
+    if (modal) modal.style.display = 'none';
+    document.body.style.overflow = '';
+};
+
+function showModal(html) {
+    injectModalContainer();
+    const content = document.getElementById('admin-modal-content');
+    const overlay = document.getElementById('admin-modal-overlay');
+    content.innerHTML = html;
+    overlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+// ─── Order Details ───────────────────────────────────────────────────────────
+window.viewOrder = async (orderId) => {
+    const orderDoc = await getDoc(doc(db, "orders", orderId));
+    if (!orderDoc.exists()) return;
+    const o = orderDoc.data();
+    const date = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString() : 'N/A';
+
+    const modalHTML = `
+        <div class="modal-header">
+            <h2>Order Details: #${orderId.substring(0, 8)}</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="order-detail-grid">
+                <div class="detail-item"><label>Customer</label><p>${o.userName || 'Guest'}</p></div>
+                <div class="detail-item"><label>Email</label><p>${o.userEmail || 'N/A'}</p></div>
+                <div class="detail-item"><label>Date</label><p>${date}</p></div>
+                <div class="detail-item"><label>Total Price</label><p>$${(o.total || 0).toFixed(2)}</p></div>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 2rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700;">Order Status</label>
+                <select id="update-order-status" class="btn btn-outline" style="width: 100%; padding: 0.8rem;">
+                    <option value="processing" ${o.status === 'processing' ? 'selected' : ''}>Processing</option>
+                    <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+                    <option value="delivered" ${o.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                    <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                </select>
+            </div>
+
+            <h3 style="font-size: 1rem; margin-bottom: 1rem;">Items Summary</h3>
+            <div class="order-items-list">
+                ${(o.items || []).map(item => `
+                    <div class="order-item">
+                        <img src="${item.productImage || item.imageUrl}">
+                        <div class="order-item-info">
+                            <h4>${item.productName || item.name}</h4>
+                            <span>Qty: ${item.qty} • ${item.selectedColor || 'Default'}</span>
+                        </div>
+                        <div class="order-item-price">$${(parseFloat(item.productPrice || item.price) * item.qty).toFixed(2)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal()">Close</button>
+            <button class="btn btn-primary" onclick="updateOrderStatus('${orderId}')">Save Status</button>
+        </div>
+    `;
+    showModal(modalHTML);
+};
+
+window.updateOrderStatus = async (orderId) => {
+    const newStatus = document.getElementById('update-order-status').value;
+    try {
+        await updateDoc(doc(db, "orders", orderId), { status: newStatus });
+        await logAction('updated order status', orderId.substring(0, 8));
+        showToast(`Order status updated to ${newStatus}`);
+        closeModal();
+    } catch (error) {
+        showToast(error.message, "error");
+    }
+};
+
+// ─── Edit Product ────────────────────────────────────────────────────────────
+window.editProduct = async (productId) => {
+    const pDoc = await getDoc(doc(db, "products", productId));
+    if (!pDoc.exists()) return;
+    const p = pDoc.data();
+
+    const modalHTML = `
+        <div class="modal-header">
+            <h2>Edit Product</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="edit-product-form" class="admin-form" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Product Name</label>
+                    <input type="text" id="edit-name" value="${p.productName || p.name}" required>
+                </div>
+                <div class="form-group">
+                    <label>Price ($)</label>
+                    <input type="number" id="edit-price" value="${p.productPrice || p.price}" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Stock</label>
+                    <input type="number" id="edit-stock" value="${p.stock || 0}" required>
+                </div>
+                <div class="form-group" style="grid-column: span 2;">
+                    <label>Category</label>
+                    <select id="edit-category" required>
+                        <option value="shoes" ${p.category === 'shoes' ? 'selected' : ''}>Shoes</option>
+                        <option value="bags" ${p.category === 'bags' ? 'selected' : ''}>Bags</option>
+                        <option value="watches" ${p.category === 'watches' ? 'selected' : ''}>Watches</option>
+                        <option value="glasses" ${p.category === 'glasses' ? 'selected' : ''}>Glasses</option>
+                        <option value="men" ${p.category === 'men' ? 'selected' : ''}>Men</option>
+                        <option value="women" ${p.category === 'women' ? 'selected' : ''}>Women</option>
+                        <option value="electronics" ${p.category === 'electronics' ? 'selected' : ''}>Electronics</option>
+                        <option value="home" ${p.category === 'home' ? 'selected' : ''}>Home</option>
+                    </select>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="updateProduct('${productId}')">Save Changes</button>
+        </div>
+    `;
+    showModal(modalHTML);
+};
+
+window.updateProduct = async (productId) => {
+    const data = {
+        productName: document.getElementById('edit-name').value.trim(),
+        productPrice: parseFloat(document.getElementById('edit-price').value),
+        stock: parseInt(document.getElementById('edit-stock').value),
+        category: document.getElementById('edit-category').value,
+        updatedAt: Timestamp.now()
+    };
+
+    try {
+        await updateDoc(doc(db, "products", productId), data);
+        await logAction('updated product', data.productName);
+        showToast("Product updated successfully.");
+        closeModal();
+    } catch (error) {
+        showToast(error.message, "error");
+    }
+};
+
 window.showToast = (msg, type = 'success') => {
+    injectToastContainer();
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i> <span>${msg}</span>`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+        <span>${msg}</span>
+    `;
     container.appendChild(toast);
-    setTimeout(() => toast.remove(), 4000);
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 500);
+    }, 4000);
+};
+
+function injectToastContainer() {
+    if (document.getElementById('toast-container')) return;
+    const div = document.createElement('div');
+    div.id = 'toast-container';
+    div.style.cssText = 'position: fixed; top: 2rem; right: 2rem; z-index: 10000; display: flex; flex-direction: column; gap: 0.75rem;';
+    document.body.appendChild(div);
+}
+};
+
+// ─── User Role Management ───────────────────────────────────────────────────
+window.openUserRoleModal = (userId, name, currentRole) => {
+    const modalHTML = `
+        <div class="modal-header">
+            <h2>Manage User Role</h2>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p>Managing access for: <strong>${name}</strong></p>
+            <div class="form-group" style="margin-top: 1.5rem;">
+                <label style="display: block; margin-bottom: 0.5rem; font-weight: 700;">Assign Role</label>
+                <select id="update-user-role" class="btn btn-outline" style="width: 100%; padding: 0.8rem;">
+                    <option value="user" ${currentRole === 'user' ? 'selected' : ''}>Standard User</option>
+                    <option value="admin" ${currentRole === 'admin' ? 'selected' : ''}>Administrator</option>
+                </select>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--admin-text-muted); margin-top: 1rem;">
+                <i class="fas fa-info-circle"></i> Granting administrator privileges allows full access to this dashboard.
+            </p>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="updateUserRole('${userId}', '${name}')">Update Role</button>
+        </div>
+    `;
+    showModal(modalHTML);
+};
+
+window.updateUserRole = async (userId, name) => {
+    const newRole = document.getElementById('update-user-role').value;
+    try {
+        await updateDoc(doc(db, "users", userId), { role: newRole });
+        await logAction('updated user role', `${name} (${newRole})`);
+        showToast(`Role updated successfully for ${name}`);
+        closeModal();
+    } catch (error) {
+        showToast(error.message, "error");
+    }
 };
 
 function injectToasts() {
