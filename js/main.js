@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auth State Observer
     onAuthStateChanged(auth, async (user) => {
         currentUser = user;
+        cleanupAllOverlays(); // Force-clean any stuck overlays on auth change
         updateNavbarUI(user);
         
         if (user) {
@@ -572,17 +573,28 @@ window.showLogoutModal = () => {
 
 function hideLogoutModal() {
     const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.style.display = 'none';
-        document.body.classList.remove('modal-open');
-        
-        // Reset the confirm button state if it was changed
-        const confirmBtn = document.getElementById('confirm-logout');
-        if (confirmBtn) {
-            confirmBtn.innerHTML = 'Logout';
-            confirmBtn.disabled = false;
-        }
+    if (modal) modal.style.display = 'none';
+    document.body.classList.remove('modal-open');
+    // Reset the confirm button state
+    const confirmBtn = document.getElementById('confirm-logout');
+    if (confirmBtn) {
+        confirmBtn.innerHTML = 'Logout';
+        confirmBtn.disabled = false;
     }
+}
+
+/**
+ * Force-cleanup all overlay/modal states.
+ * Called on every auth state change to catch stuck overlays.
+ */
+function cleanupAllOverlays() {
+    document.body.classList.remove('modal-open');
+    const authModal = document.getElementById('authModal');
+    if (authModal) authModal.style.display = 'none';
+    const logoutModal = document.getElementById('logoutModal');
+    if (logoutModal) logoutModal.style.display = 'none';
+    const clearCartModal = document.getElementById('clearCartModal');
+    if (clearCartModal) clearCartModal.style.display = 'none';
 }
 
 /**
@@ -679,8 +691,11 @@ window.showAuthModal = (signup = false) => {
 
 function hideAuthModal() {
     const modal = document.getElementById('authModal');
-    modal.style.display = 'none';
+    if (modal) modal.style.display = 'none';
     document.body.classList.remove('modal-open');
+    // Reset form error on close
+    const errorMsg = document.getElementById('auth-error');
+    if (errorMsg) errorMsg.innerText = '';
 }
 
 function toggleAuthMode(e) {
@@ -800,14 +815,15 @@ async function handleGoogleLogin() {
 async function handleLogout() {
     try {
         await signOut(auth);
-        // Clear any local storage if needed
-        localStorage.removeItem('sh_cart'); // Example: clearing cart on logout
-        hideLogoutModal();
-        window.location.href = 'index.html';
+        localStorage.removeItem('sh_cart');
     } catch (error) {
         console.error('Logout error:', error);
         window.showToast("Error logging out. Please try again.", "error");
+    } finally {
+        // ALWAYS clean up overlays regardless of success/failure
         hideLogoutModal();
+        cleanupAllOverlays();
+        window.location.href = 'index.html';
     }
 }
 

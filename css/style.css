@@ -457,6 +457,12 @@ img {
     border-color: var(--primary);
 }
 
+/* Body Scroll Lock for Modals */
+body.modal-open {
+    overflow: hidden;
+    padding-right: 0px; /* Prevent layout shift from scrollbar disappearing */
+}
+
 /* Modal / Auth System */
 .modal-overlay {
     position: fixed;
