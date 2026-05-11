@@ -701,6 +701,10 @@ window.showAuthModal = (signup = false) => {
     document.body.classList.add('modal-open');
 }
 
+window.loginUser = () => window.showAuthModal(false);
+window.signupUser = () => window.showAuthModal(true);
+
+
 function hideAuthModal() {
     const modal = document.getElementById('authModal');
     if (modal) modal.style.display = 'none';
